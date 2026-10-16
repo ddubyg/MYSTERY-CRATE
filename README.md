@@ -206,7 +206,9 @@ $$\text{Valuation} = \text{Base Price} \times \prod (\text{Mutation Multipliers}
 | Trade Hub (`/trades`) | Passed | HTTP 200; 3 realm traders, 2-sided offer matrix, valuation check |
 | Cart (`/cart`) | Passed | HTTP 200; quantity steppers, subtotal, free shipping calc |
 | Checkout (`/checkout`) | Passed | HTTP 200; form validation, simulated payment, order receipt |
+
 | Invalid Route (404) | Passed | HTTP 404; themed NotFound layout with link to Discover |
 
-#   M Y S T E R Y - C R A T E  
+#   M Y S T E R Y - C R A T E 
+ 
  
