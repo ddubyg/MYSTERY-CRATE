@@ -208,3 +208,5 @@ $$\text{Valuation} = \text{Base Price} \times \prod (\text{Mutation Multipliers}
 | Checkout (`/checkout`) | Passed | HTTP 200; form validation, simulated payment, order receipt |
 | Invalid Route (404) | Passed | HTTP 404; themed NotFound layout with link to Discover |
 
+#   M Y S T E R Y - C R A T E  
+ 
