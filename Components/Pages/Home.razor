@@ -1,0 +1,293 @@
+@page "/"
+@using MysteryCrate.Models
+@using MysteryCrate.Services
+@inject CreatureService CreatureService
+@inject CartService CartService
+@inject NotificationService NotificationService
+
+<PageTitle>Mystery Crate — Veilbound: Origins | Creature Card Universe</PageTitle>
+
+<!-- Hero Section: Premium Deep Plum Atmosphere -->
+<section class="relative bg-gradient-to-b from-plum-deep via-plum-secondary to-plum-deep text-ivory py-16 md:py-24 overflow-hidden border-b border-plum-border">
+    <!-- Subtle Arcane Background Radial Glows -->
+    <div class="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-purple-muted/20 blur-3xl pointer-events-none"></div>
+    <div class="absolute top-1/2 -right-40 w-96 h-96 rounded-full bg-gold-accent/15 blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <!-- Hero Left Copy -->
+            <div class="lg:col-span-7 flex flex-col items-start space-y-6 text-left">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-plum-surface border border-gold-accent/40 text-xs font-semibold text-gold-accent tracking-wide shadow-sm">
+                    <span>✦</span>
+                    <span>VEILBOUND: ORIGINS — GENESIS ARCHIVE</span>
+                </div>
+
+                <h1 class="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-ivory leading-[1.1] tracking-tight">
+                    Unveil the Boundless Creatures of the <span class="text-transparent bg-clip-text bg-gradient-to-r from-gold-accent via-amber-200 to-purple-300">Veil</span>.
+                </h1>
+
+                <p class="text-base sm:text-lg text-purple-light/80 max-w-xl leading-relaxed">
+                    Collect, trade, and discover mystical specimens across seven celestial planes. Experience the thrill of unsealing mystery crates, discovering rare holographic mutations, and building your personal vault.
+                </p>
+
+                <div class="flex flex-wrap items-center gap-4 pt-2">
+                    <a href="/shop" class="px-6 py-3.5 rounded-xl bg-gold-accent text-plum-deep hover:bg-gold-hover font-bold text-sm tracking-wide transition-all shadow-lg hover:shadow-gold-accent/20 flex items-center gap-2">
+                        <span>Explore Card Shop</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </a>
+                    <a href="/packs" class="px-6 py-3.5 rounded-xl bg-plum-surface hover:bg-plum-border text-ivory border border-border-strong font-semibold text-sm transition-all flex items-center gap-2">
+                        <span>Open Mystery Packs</span>
+                        <span class="text-gold-accent">📦</span>
+                    </a>
+                </div>
+
+                <!-- Stats Counters -->
+                <div class="grid grid-cols-3 gap-6 pt-6 border-t border-plum-border/60 w-full max-w-lg">
+                    <div>
+                        <div class="font-display text-2xl font-bold text-gold-accent">7 Tiers</div>
+                        <div class="text-xs text-purple-light/70 uppercase tracking-wider mt-0.5">Rarity Spectrum</div>
+                    </div>
+                    <div>
+                        <div class="font-display text-2xl font-bold text-ivory">12 Types</div>
+                        <div class="text-xs text-purple-light/70 uppercase tracking-wider mt-0.5">Mutations & Foils</div>
+                    </div>
+                    <div>
+                        <div class="font-display text-2xl font-bold text-gold-accent">1 of 1</div>
+                        <div class="text-xs text-purple-light/70 uppercase tracking-wider mt-0.5">Crown Aurex Scarab</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Right: Featured Aurex Showcase Card -->
+            <div class="lg:col-span-5 flex justify-center">
+                <div class="relative w-full max-w-sm group">
+                    <!-- Outer Golden & Rainbow Glow aura -->
+                    <div class="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-gold-accent via-fuchsia-500 to-indigo-500 opacity-60 blur-lg group-hover:opacity-85 transition-opacity duration-500"></div>
+
+                    <!-- Aurex Card Frame -->
+                    <div class="relative rounded-2xl bg-plum-surface border-2 border-gold-accent p-5 shadow-2xl flex flex-col overflow-hidden animate-float-gentle">
+                        <!-- Holographic Foil sweep layer -->
+                        <div class="absolute inset-0 prismatic-foil opacity-30 pointer-events-none group-hover:opacity-55 transition-opacity"></div>
+
+                        <!-- Card Top Bar: Badges -->
+                        <div class="relative z-10 flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400 text-plum-deep shadow-sm">
+                                    ★ LEGENDARY
+                                </span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-amber-300 to-yellow-500 text-plum-deep">
+                                    SERIAL 001 / 001
+                                </span>
+                            </div>
+                            <span class="text-xs text-gold-accent font-semibold tracking-wider">
+                                SHOWCASE SPECIMEN
+                            </span>
+                        </div>
+
+                        <!-- Card Artwork Box -->
+                        <div class="relative aspect-square w-full rounded-xl bg-gradient-to-br from-amber-950 via-purple-950 to-indigo-950 border border-gold-accent/50 flex flex-col items-center justify-center p-6 overflow-hidden scarab-glow">
+                            <!-- Inner decorative celestial rings -->
+                            <div class="absolute w-48 h-48 rounded-full border border-gold-accent/20 animate-spin" style="animation-duration: 24s;"></div>
+                            <div class="absolute w-36 h-36 rounded-full border border-purple-400/30 border-dashed"></div>
+
+                            <!-- Aurex Scarab Emoji Art with golden drop shadow -->
+                            <div class="text-8xl select-none transform transition-transform group-hover:scale-110 duration-300 drop-shadow-[0_10px_20px_rgba(231,196,107,0.5)]">
+                                🪲
+                            </div>
+
+                            <!-- Floating trait badges over art -->
+                            <div class="absolute bottom-3 flex items-center gap-1.5 z-10">
+                                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-300 text-amber-950 shadow">
+                                    ✦ Golden
+                                </span>
+                                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-gradient-to-r from-rose-200 via-amber-200 to-sky-200 text-purple-950 shadow">
+                                    ✦ Rainbow
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Card Details -->
+                        <div class="relative z-10 mt-4 flex flex-col">
+                            <div class="flex items-center justify-between text-[11px] text-purple-light/70 uppercase tracking-wider mb-1 font-medium">
+                                <span>Insect / Celestial</span>
+                                <span>Celestial Spires</span>
+                            </div>
+
+                            <h2 class="font-display font-black text-2xl text-ivory tracking-wide">
+                                Aurex
+                            </h2>
+                            <p class="text-xs text-gold-accent/90 italic mb-3">
+                                The Prismatic Scarab
+                            </p>
+
+                            <p class="text-xs text-purple-light/80 leading-relaxed line-clamp-2 mb-4">
+                                A legendary one-of-one specimen unearthed from the Astral Vaults of Aethelgard. Its hardened chitin refracts pure sunlight into prismatic arcs, whispered to bend temporal fate.
+                            </p>
+
+                            <!-- Valuation Display with Mandatory Student Disclaimer Label -->
+                            <div class="pt-3 border-t border-plum-border flex items-center justify-between">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] uppercase font-bold tracking-wider text-purple-light/70">
+                                        Illustrative Collector Valuation
+                                    </span>
+                                    <div class="font-display font-black text-2xl text-gold-accent flex items-baseline gap-1">
+                                        <span class="text-base font-sans">₱</span>
+                                        <span>5,000,000</span>
+                                    </div>
+                                    <span class="text-[9px] text-purple-light/50 italic">
+                                        Fictional showcase estimate • Non-circulating 1 of 1
+                                    </span>
+                                </div>
+
+                                <a href="/cards/aurex-001" class="px-3.5 py-2 rounded-xl bg-gold-accent text-plum-deep hover:bg-gold-hover font-bold text-xs transition-colors shadow">
+                                    Inspect &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Rarity Spectrum Overview Section -->
+<section class="py-16 md:py-20 bg-ivory">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+            <span class="text-xs font-bold tracking-[0.2em] text-purple-muted uppercase">Seven Tiers of Existence</span>
+            <h2 class="font-display font-bold text-3xl sm:text-4xl text-ink-primary mt-1">
+                The Rarity Tier Hierarchy
+            </h2>
+            <p class="text-sm text-ink-muted mt-3">
+                Every creature discovered within the Veil belongs to a designated rarity tier with a standardized fictional base price.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
+            @foreach (RarityTier tier in Enum.GetValues<RarityTier>())
+            {
+                <div class="bg-card rounded-xl border p-4 flex flex-col items-center text-center shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all @RarityHelper.GetBorderAccent(tier)">
+                    <RarityBadge Rarity="@tier" CustomClass="mb-2" />
+                    <span class="text-[11px] text-ink-muted uppercase font-medium mt-1">Base Valuation</span>
+                    <span class="font-display font-bold text-lg text-ink-primary mt-0.5">
+                        <span class="text-gold-accent font-sans text-sm">₱</span>@RarityHelper.GetBasePrice(tier).ToString("N0")
+                    </span>
+                    <a href="/shop?rarity=@tier" class="text-[11px] text-purple-muted hover:text-plum-deep font-semibold mt-3 hover:underline">
+                        Browse Tier &rarr;
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Featured Creatures Catalog Grid -->
+<section class="py-16 bg-purple-light/40 border-y border-border-subtle">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+            <div>
+                <span class="text-xs font-bold tracking-[0.2em] text-purple-muted uppercase">Curated Catalog</span>
+                <h2 class="font-display font-bold text-3xl text-ink-primary mt-1">
+                    Notable Veilbound Creatures
+                </h2>
+                <p class="text-sm text-ink-muted mt-1">
+                    Discover popular creatures across habitats from Whispering Woods to the Celestial Spires.
+                </p>
+            </div>
+            <a href="/shop" class="inline-flex items-center gap-1.5 text-sm font-bold text-plum-secondary hover:text-purple-muted transition-colors">
+                <span>View Full Catalog (@CreatureService.GetAllCreatures().Count cards)</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                </svg>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            @foreach (var creature in _featuredList)
+            {
+                <CreatureCard Creature="@creature" />
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Mutation Trait Showcase Section -->
+<section class="py-16 md:py-20 bg-ivory">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div class="lg:col-span-5">
+                <span class="text-xs font-bold tracking-[0.2em] text-purple-muted uppercase">Collectible Genetics</span>
+                <h2 class="font-display font-bold text-3xl sm:text-4xl text-ink-primary mt-1 leading-tight">
+                    Elemental Mutations & Value Multipliers
+                </h2>
+                <p class="text-sm text-ink-muted mt-4 leading-relaxed">
+                    Mutations represent aesthetic variations that enhance a creature's collectibility. In the Veilbound universe, valuation follows a transparent deterministic formula:
+                </p>
+                <div class="my-6 p-4 rounded-xl bg-purple-light/80 border border-border-subtle font-mono text-xs text-plum-secondary">
+                    Card Valuation = Base Price × ∏ (Mutation Multipliers)
+                </div>
+                <p class="text-xs text-ink-muted leading-relaxed">
+                    A card possessing multiple mutations compounds its trait multipliers. Notice how Aurex carries both Golden (2.50x) and Rainbow (3.00x) traits, alongside its historic 1-of-1 archival provenance!
+                </p>
+            </div>
+
+            <div class="lg:col-span-7">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    @foreach (var mutation in MutationHelper.AllMutations)
+                    {
+                        <div class="bg-card p-3.5 rounded-xl border border-border-subtle shadow-sm flex flex-col justify-between hover:border-purple-muted/40 transition-colors">
+                            <div class="flex items-center justify-between mb-2">
+                                <MutationBadge Mutation="@mutation" />
+                                <span class="font-mono text-xs font-bold text-ink-primary">
+                                    @MutationHelper.GetMultiplier(mutation)x
+                                </span>
+                            </div>
+                            <span class="text-[11px] text-ink-muted">
+                                Trait multiplier applied to creature base price.
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mystery Crate Teaser Banner -->
+<section class="py-14 bg-gradient-to-r from-plum-deep via-plum-secondary to-plum-deep text-ivory border-t border-plum-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div class="flex items-center gap-5">
+            <div class="w-16 h-16 rounded-2xl bg-plum-surface border border-gold-accent/40 flex items-center justify-center text-4xl shadow-xl">
+                📦
+            </div>
+            <div>
+                <h3 class="font-display font-bold text-2xl text-ivory">
+                    Ready to Test Your Fortune?
+                </h3>
+                <p class="text-sm text-purple-light/80 mt-1 max-w-lg">
+                    Open simulated Mystery Crates to pull guaranteed foils, serialized titans, and secret creatures directly into your personal vault.
+                </p>
+            </div>
+        </div>
+
+        <a href="/packs" class="px-7 py-3.5 rounded-xl bg-gold-accent text-plum-deep hover:bg-gold-hover font-bold text-sm tracking-wide transition-all shadow-lg flex-shrink-0">
+            Open Mystery Packs &rarr;
+        </a>
+    </div>
+</section>
+
+@code {
+    private List<Creature> _featuredList = new();
+
+    protected override void OnInitialized()
+    {
+        // Exclude Aurex from standard grid (it has the hero showcase) and take 8 diverse creatures
+        _featuredList = CreatureService.GetAllCreatures()
+            .Where(c => !c.IsFeaturedShowcase)
+            .Take(8)
+            .ToList();
+    }
+}

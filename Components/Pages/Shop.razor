@@ -1,0 +1,126 @@
+@page "/shop"
+@using MysteryCrate.Models
+@using MysteryCrate.Services
+@inject CreatureService CreatureService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Card Shop — Veilbound: Origins | Mystery Crate</PageTitle>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+    <!-- Header Title & Subtitle -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+            <div class="inline-flex items-center gap-1.5 text-xs font-bold tracking-[0.2em] text-purple-muted uppercase mb-1">
+                <span>✦</span>
+                <span>The Veilbound Archives</span>
+            </div>
+            <h1 class="font-display font-bold text-3xl sm:text-4xl text-ink-primary">
+                Card Shop Catalog
+            </h1>
+            <p class="text-sm text-ink-muted mt-2 max-w-xl">
+                Browse our verified collection of mythical creatures, beasts, and elemental titans. Filter by rarity, search traits, or sort by collector valuation.
+            </p>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="w-full md:w-auto">
+            <SearchBar Value="@_searchTerm" ValueChanged="OnSearchChanged" Placeholder="Search by name, type, habitat..." />
+        </div>
+    </div>
+
+    <!-- Filter & Sort Bar -->
+    <div class="mb-8">
+        <FilterBar SelectedRarity="@_selectedRarity"
+                   SelectedRarityChanged="OnRarityChanged"
+                   SelectedMutation="@_selectedMutation"
+                   SelectedMutationChanged="OnMutationChanged"
+                   SelectedSort="@_selectedSort"
+                   SelectedSortChanged="OnSortChanged"
+                   ItemCount="@_displayedCreatures.Count"
+                   OnReset="ResetFilters" />
+    </div>
+
+    <!-- Cards Grid / Empty State -->
+    @if (_displayedCreatures.Count == 0)
+    {
+        <EmptyState Icon="🎴"
+                    Title="No creatures match your criteria"
+                    Message="No cards matched your current search term or filter selection. Try adjusting your query or resetting all filters."
+                    ActionText="Reset All Filters"
+                    OnAction="ResetFilters" />
+    }
+    else
+    {
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            @foreach (var creature in _displayedCreatures)
+            {
+                <CreatureCard Creature="@creature" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? Rarity { get; set; }
+
+    private string _searchTerm = string.Empty;
+    private RarityTier? _selectedRarity;
+    private string? _selectedMutation;
+    private string _selectedSort = "rarity-desc";
+    private List<Creature> _displayedCreatures = new();
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(Rarity) && Enum.TryParse<RarityTier>(Rarity, true, out var parsedTier))
+        {
+            _selectedRarity = parsedTier;
+        }
+
+        UpdateQuery();
+    }
+
+    private void UpdateQuery()
+    {
+        _displayedCreatures = CreatureService.FilterCreatures(
+            search: _searchTerm,
+            rarity: _selectedRarity,
+            mutation: _selectedMutation,
+            sortBy: _selectedSort
+        ).ToList();
+    }
+
+    private void OnSearchChanged(string term)
+    {
+        _searchTerm = term;
+        UpdateQuery();
+    }
+
+    private void OnRarityChanged(RarityTier? rarity)
+    {
+        _selectedRarity = rarity;
+        UpdateQuery();
+    }
+
+    private void OnMutationChanged(string? mutation)
+    {
+        _selectedMutation = mutation;
+        UpdateQuery();
+    }
+
+    private void OnSortChanged(string sort)
+    {
+        _selectedSort = sort;
+        UpdateQuery();
+    }
+
+    private void ResetFilters()
+    {
+        _searchTerm = string.Empty;
+        _selectedRarity = null;
+        _selectedMutation = null;
+        _selectedSort = "rarity-desc";
+        UpdateQuery();
+    }
+}
+

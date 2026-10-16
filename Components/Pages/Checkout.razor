@@ -1,0 +1,341 @@
+@page "/checkout"
+@using MysteryCrate.Models
+@using MysteryCrate.Services
+@inject CartService CartService
+@inject CollectionService CollectionService
+@inject CreatureService CreatureService
+@inject MysteryPackService PackService
+@inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Simulated Checkout — Veilbound: Origins | Mystery Crate</PageTitle>
+
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+    @if (_completedOrder != null)
+    {
+        <!-- Order Success State -->
+        <div class="bg-card rounded-2xl border-2 border-gold-accent p-8 sm:p-12 shadow-2xl text-center max-w-2xl mx-auto animate-in zoom-in-95 duration-300">
+            <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-800 text-3xl flex items-center justify-center mx-auto mb-5 shadow-sm">
+                ✓
+            </div>
+
+            <span class="text-xs font-bold tracking-[0.2em] text-gold-accent uppercase">
+                Simulated Order Confirmed
+            </span>
+            <h1 class="font-display font-black text-3xl sm:text-4xl text-ink-primary mt-1 mb-2">
+                Order @_completedOrder.Id
+            </h1>
+            <p class="text-sm text-ink-muted mb-6">
+                Thank you, <strong>@_completedOrder.CustomerName</strong>! Your simulated order has been registered and all items have been directly deposited to your <strong>Vault</strong>.
+            </p>
+
+            <!-- Order Receipt Box -->
+            <div class="bg-ivory rounded-xl border border-border-subtle p-5 text-left text-xs space-y-3 mb-6">
+                <div class="flex justify-between pb-2 border-b border-border-subtle">
+                    <span class="text-ink-muted">Transaction Type:</span>
+                    <span class="font-bold text-ink-primary">@_completedOrder.SimulatedPaymentNote</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-ink-muted">Recipient Email:</span>
+                    <span class="font-semibold text-ink-primary">@_completedOrder.Email</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-ink-muted">Destination:</span>
+                    <span class="font-semibold text-ink-primary">@_completedOrder.ShippingAddress, @_completedOrder.City @_completedOrder.PostalCode</span>
+                </div>
+                <div class="flex justify-between pt-2 border-t border-border-subtle">
+                    <span class="font-bold text-ink-primary text-sm">Simulated Amount Paid:</span>
+                    <span class="font-display font-black text-base text-amber-950">₱@_completedOrder.Total.ToString("N0")</span>
+                </div>
+            </div>
+
+            <!-- Items summary -->
+            <div class="text-left mb-8">
+                <span class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">Items Transferred to Vault:</span>
+                <div class="space-y-1.5 max-h-40 overflow-y-auto">
+                    @foreach (var it in _completedOrder.Items)
+                    {
+                        <div class="px-3 py-2 rounded-lg bg-card border border-border-subtle flex items-center justify-between text-xs">
+                            <span class="font-medium text-ink-primary">@it.Emoji @it.Title (×@it.Quantity)</span>
+                            <span class="font-mono text-ink-muted">₱@it.Total.ToString("N0")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a href="/vault" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-xs tracking-wide transition-all shadow">
+                    Inspect Items in My Vault &rarr;
+                </a>
+                <a href="/shop" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-ivory border border-border-subtle text-ink-primary hover:bg-border-subtle font-semibold text-xs transition-colors">
+                    Back to Card Shop
+                </a>
+            </div>
+        </div>
+    }
+    else if (CartService.Items.Count == 0)
+    {
+        <EmptyState Icon="🛒"
+                    Title="No Items in Cart to Checkout"
+                    Message="Your cart is currently empty. Add cards or mystery packs to proceed through checkout."
+                    ActionText="Browse Card Shop"
+                    ActionUrl="/shop" />
+    }
+    else
+    {
+        <!-- Checkout Flow -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+            <!-- Left Form Column -->
+            <div class="lg:col-span-7 bg-card rounded-2xl border border-border-subtle p-6 sm:p-8 shadow-sm">
+                <div class="flex items-center gap-2 mb-6 pb-4 border-b border-border-subtle">
+                    <span class="text-xl">🛡️</span>
+                    <div>
+                        <h2 class="font-display font-bold text-xl text-ink-primary">
+                            Collector Shipping & Sandbox Payment
+                        </h2>
+                        <p class="text-xs text-ink-muted">
+                            Complete the fields below to simulate order completion. No real credit card details required.
+                        </p>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(_validationError))
+                {
+                    <div class="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 font-medium flex items-center gap-2">
+                        <span>⚠️</span>
+                        <span>@_validationError</span>
+                    </div>
+                }
+
+                <form @onsubmit="ProcessCheckout" class="space-y-4">
+                    <!-- Name & Email -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-1">
+                                Full Name <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text"
+                                   @bind="_customerName"
+                                   placeholder="e.g. Lord Vance or Scholar Mira"
+                                   class="w-full bg-ivory border border-border-subtle rounded-xl px-3.5 py-2.5 text-xs text-ink-primary focus:outline-none focus:ring-2 focus:ring-purple-muted/30" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-1">
+                                Email Address <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="email"
+                                   @bind="_email"
+                                   placeholder="collector@veilbound.realm"
+                                   class="w-full bg-ivory border border-border-subtle rounded-xl px-3.5 py-2.5 text-xs text-ink-primary focus:outline-none focus:ring-2 focus:ring-purple-muted/30" />
+                        </div>
+                    </div>
+
+                    <!-- Shipping Address -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-1">
+                            Physical or Dimensional Address <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text"
+                               @bind="_address"
+                               placeholder="e.g. 742 Celestial Spire Way, Suite 4"
+                               class="w-full bg-ivory border border-border-subtle rounded-xl px-3.5 py-2.5 text-xs text-ink-primary focus:outline-none focus:ring-2 focus:ring-purple-muted/30" />
+                    </div>
+
+                    <!-- City & Postal -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-1">
+                                City / Habitat Region <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text"
+                                   @bind="_city"
+                                   placeholder="e.g. Aethelgard or Sunken Reach"
+                                   class="w-full bg-ivory border border-border-subtle rounded-xl px-3.5 py-2.5 text-xs text-ink-primary focus:outline-none focus:ring-2 focus:ring-purple-muted/30" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-1">
+                                Realm Postal Code <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text"
+                                   @bind="_postalCode"
+                                   placeholder="e.g. 1001"
+                                   class="w-full bg-ivory border border-border-subtle rounded-xl px-3.5 py-2.5 text-xs text-ink-primary focus:outline-none focus:ring-2 focus:ring-purple-muted/30" />
+                        </div>
+                    </div>
+
+                    <!-- Simulated Payment Selection -->
+                    <div class="pt-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
+                            Simulated Payment Method
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="p-3.5 rounded-xl border flex items-center gap-3 cursor-pointer transition-all @(_paymentMethod == "gems" ? "border-gold-accent bg-gold-light/20 ring-1 ring-gold-accent" : "border-border-subtle hover:bg-ivory")">
+                                <input type="radio" name="payment" value="gems" checked="@(_paymentMethod == "gems")" @onchange="@(() => _paymentMethod = "gems")" class="text-gold-accent focus:ring-0" />
+                                <div>
+                                    <div class="text-xs font-bold text-ink-primary">🔮 Arcane Ether Gems</div>
+                                    <div class="text-[10px] text-ink-muted">Simulated realm tokens</div>
+                                </div>
+                            </label>
+
+                            <label class="p-3.5 rounded-xl border flex items-center gap-3 cursor-pointer transition-all @(_paymentMethod == "sandbox" ? "border-gold-accent bg-gold-light/20 ring-1 ring-gold-accent" : "border-border-subtle hover:bg-ivory")">
+                                <input type="radio" name="payment" value="sandbox" checked="@(_paymentMethod == "sandbox")" @onchange="@(() => _paymentMethod = "sandbox")" class="text-gold-accent focus:ring-0" />
+                                <div>
+                                    <div class="text-xs font-bold text-ink-primary">💳 Test Sandbox Credit</div>
+                                    <div class="text-[10px] text-ink-muted">Academic dummy tender</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit"
+                                class="w-full py-3.5 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-sm tracking-wide transition-all shadow-md flex items-center justify-center gap-2">
+                            <span>Complete Simulated Order (₱@CartService.Total.ToString("N0"))</span>
+                            <span>⚡</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Right Summary Column -->
+            <div class="lg:col-span-5 bg-card rounded-2xl border border-border-subtle p-6 shadow-card space-y-4">
+                <h3 class="font-display font-bold text-base text-ink-primary pb-3 border-b border-border-subtle">
+                    Review Order Items (@CartService.TotalCount)
+                </h3>
+
+                <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
+                    @foreach (var item in CartService.Items)
+                    {
+                        <div class="flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="text-lg">@item.Emoji</span>
+                                <div class="truncate">
+                                    <div class="font-bold text-ink-primary truncate">@item.Title</div>
+                                    <div class="text-[11px] text-ink-muted">×@item.Quantity at ₱@item.UnitPrice.ToString("N0")</div>
+                                </div>
+                            </div>
+                            <span class="font-bold text-ink-primary">₱@item.Total.ToString("N0")</span>
+                        </div>
+                    }
+                </div>
+
+                <div class="pt-4 border-t border-border-subtle space-y-2 text-xs">
+                    <div class="flex justify-between text-ink-muted">
+                        <span>Subtotal:</span>
+                        <span class="font-semibold text-ink-primary">₱@CartService.Subtotal.ToString("N0")</span>
+                    </div>
+                    <div class="flex justify-between text-ink-muted">
+                        <span>Shipping:</span>
+                        <span class="font-semibold @(CartService.ShippingFee == 0 ? "text-emerald-700" : "text-ink-primary")">
+                            @(CartService.ShippingFee == 0 ? "FREE" : $"₱{CartService.ShippingFee:N0}")
+                        </span>
+                    </div>
+                    <div class="pt-2 border-t border-border-subtle flex justify-between items-baseline">
+                        <span class="font-display font-bold text-sm text-ink-primary">Total:</span>
+                        <span class="font-display font-black text-xl text-amber-950">₱@CartService.Total.ToString("N0")</span>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-purple-light/70 border border-border-subtle text-[11px] text-plum-secondary leading-snug">
+                    ✦ Reminder: This is an academic simulation. Confirming this order charges no real money and transfers items into your Vault.
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string _customerName = "Alexander Vance";
+    private string _email = "vance@veilbound.midterm";
+    private string _address = "124 Celestial Spire Boulevard";
+    private string _city = "Aethelgard";
+    private string _postalCode = "1004";
+    private string _paymentMethod = "gems";
+    private string? _validationError;
+    private Order? _completedOrder;
+
+    private void ProcessCheckout()
+    {
+        _validationError = null;
+
+        if (string.IsNullOrWhiteSpace(_customerName))
+        {
+            _validationError = "Please enter your Full Name.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_email) || !_email.Contains('@'))
+        {
+            _validationError = "Please provide a valid Email Address.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_address))
+        {
+            _validationError = "Please provide a Shipping Address.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_city))
+        {
+            _validationError = "Please provide a City or Habitat Region.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_postalCode))
+        {
+            _validationError = "Please provide a Postal Code.";
+            return;
+        }
+
+        // Create Order
+        var order = new Order
+        {
+            CustomerName = _customerName.Trim(),
+            Email = _email.Trim(),
+            ShippingAddress = _address.Trim(),
+            City = _city.Trim(),
+            PostalCode = _postalCode.Trim(),
+            Subtotal = CartService.Subtotal,
+            ShippingFee = CartService.ShippingFee,
+            Items = CartService.Items.ToList(),
+            SimulatedPaymentNote = _paymentMethod == "gems" ? "Arcane Ether Gems (Simulated)" : "Test Sandbox Credit (Simulated)"
+        };
+
+        // Transfer items to Vault
+        foreach (var item in order.Items)
+        {
+            if (item.Type == CartItemType.CreatureCard)
+            {
+                var creature = CreatureService.GetCreatureById(item.ReferenceId);
+                if (creature != null)
+                {
+                    CollectionService.AddCard(creature, item.Quantity);
+                }
+            }
+            else if (item.Type == CartItemType.MysteryPack)
+            {
+                // Each purchased pack is unsealed and deposited to vault
+                for (int i = 0; i < item.Quantity; i++)
+                {
+                    PackService.OpenPack(item.ReferenceId);
+                }
+            }
+            else if (item.Type == CartItemType.MarketplaceListing)
+            {
+                var creature = CreatureService.GetCreatureById(item.ReferenceId);
+                if (creature != null)
+                {
+                    CollectionService.AddCard(creature, item.Quantity);
+                }
+            }
+        }
+
+        // Clear cart
+        CartService.ClearCart();
+
+        _completedOrder = order;
+        NotificationService.ShowToast($"Order {_completedOrder.Id} successfully simulated! Cards transferred to Vault.", "success");
+    }
+}
+

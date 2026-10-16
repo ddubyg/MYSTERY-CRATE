@@ -1,0 +1,244 @@
+@page "/cards/{id}"
+@using MysteryCrate.Models
+@using MysteryCrate.Services
+@inject CreatureService CreatureService
+@inject CollectionService CollectionService
+@inject CartService CartService
+@inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(_creature?.Name ?? "Card Details") — Veilbound: Origins | Mystery Crate</PageTitle>
+
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+    <!-- Back Navigation Breadcrumb -->
+    <div class="mb-8 flex items-center justify-between">
+        <a href="/shop" class="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-muted hover:text-plum-deep transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <span>Back to Card Shop</span>
+        </a>
+
+        @if (_creature != null)
+        {
+            <div class="flex items-center gap-2">
+                <RarityBadge Rarity="@_creature.Rarity" />
+                @if (!string.IsNullOrEmpty(_creature.SerialNumber))
+                {
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-plum-deep text-gold-accent">
+                        #@_creature.SerialNumber
+                    </span>
+                }
+            </div>
+        }
+    </div>
+
+    @if (_creature == null)
+    {
+        <EmptyState Icon="❓"
+                    Title="Creature Specimen Not Found"
+                    Message="The creature card you requested does not exist or has dissolved back into the cosmic ether."
+                    ActionText="Browse All Creatures"
+                    ActionUrl="/shop" />
+    }
+    else
+    {
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+            <!-- Left Column: Large Collectible Card Art Showcase -->
+            <div class="lg:col-span-5 flex justify-center">
+                <div class="relative w-full max-w-sm rounded-2xl bg-card border-2 p-4 shadow-2xl overflow-hidden @RarityHelper.GetBorderAccent(_creature.Rarity)">
+                    <!-- Holographic Sheen on Mutated Cards -->
+                    @if (_creature.Mutations.Any())
+                    {
+                        <div class="absolute inset-0 prismatic-foil opacity-30 pointer-events-none"></div>
+                    }
+
+                    <!-- Top Bar Badges -->
+                    <div class="flex items-center justify-between mb-3 relative z-10">
+                        <RarityBadge Rarity="@_creature.Rarity" />
+                        @if (_creature.IsOneOfOne)
+                        {
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gold-accent text-plum-deep">
+                                1 OF 1 UNIQUE
+                            </span>
+                        }
+                        else if (!string.IsNullOrEmpty(_creature.SerialNumber))
+                        {
+                            <span class="text-xs font-mono text-ink-muted">
+                                #@_creature.SerialNumber
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Large Card Artwork Frame -->
+                    <div class="aspect-square w-full rounded-xl bg-gradient-to-br @_creature.ArtColorGradient flex items-center justify-center p-8 relative overflow-hidden mb-4 shadow-inner">
+                        <div class="text-8xl select-none transform hover:scale-105 transition-transform drop-shadow-xl">
+                            @_creature.EmojiArt
+                        </div>
+
+                        @if (_creature.Mutations.Any())
+                        {
+                            <div class="absolute bottom-3 left-3 right-3 flex flex-wrap gap-1 justify-center z-10">
+                                @foreach (var m in _creature.Mutations)
+                                {
+                                    <MutationBadge Mutation="@m" ShowMultiplier="true" />
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Card Lore Snapshot -->
+                    <div class="text-center p-2">
+                        <h2 class="font-display font-bold text-2xl text-ink-primary">
+                            @_creature.Name
+                        </h2>
+                        <p class="text-xs text-ink-muted italic mb-2">
+                            @_creature.Title
+                        </p>
+                        <span class="text-[11px] font-medium uppercase tracking-wider text-purple-muted">
+                            @_creature.CreatureType • @_creature.Habitat
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Metadata, Pricing & Actions -->
+            <div class="lg:col-span-7 flex flex-col space-y-6">
+                <!-- Title & Epithet -->
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xs font-bold uppercase tracking-widest text-purple-muted">
+                            Archive Specimen #@_creature.Id
+                        </span>
+                        @if (_ownershipEntry != null && _ownershipEntry.Quantity > 0)
+                        {
+                            <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                In Vault (×@_ownershipEntry.Quantity)
+                            </span>
+                        }
+                    </div>
+                    <h1 class="font-display font-black text-4xl text-ink-primary leading-tight">
+                        @_creature.Name
+                    </h1>
+                    <p class="text-base text-purple-muted italic font-display mt-1">
+                        @_creature.Title
+                    </p>
+                </div>
+
+                <!-- Description / Flavor Text -->
+                <div class="bg-card p-6 rounded-2xl border border-border-subtle shadow-sm">
+                    <h3 class="font-display font-bold text-sm uppercase tracking-wider text-ink-primary mb-2">
+                        Specimen Lore & Origin
+                    </h3>
+                    <p class="text-sm text-ink-primary/90 leading-relaxed">
+                        @_creature.Description
+                    </p>
+                </div>
+
+                <!-- Metadata Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div class="bg-card p-4 rounded-xl border border-border-subtle shadow-sm">
+                        <span class="text-[11px] uppercase font-bold tracking-wider text-ink-muted">Species / Type</span>
+                        <p class="font-semibold text-sm text-ink-primary mt-1">@_creature.CreatureType</p>
+                    </div>
+                    <div class="bg-card p-4 rounded-xl border border-border-subtle shadow-sm">
+                        <span class="text-[11px] uppercase font-bold tracking-wider text-ink-muted">Native Habitat</span>
+                        <p class="font-semibold text-sm text-ink-primary mt-1">@_creature.Habitat</p>
+                    </div>
+                    <div class="bg-card p-4 rounded-xl border border-border-subtle shadow-sm">
+                        <span class="text-[11px] uppercase font-bold tracking-wider text-ink-muted">Rarity Baseline</span>
+                        <p class="font-semibold text-sm text-ink-primary mt-1">₱@RarityHelper.GetBasePrice(_creature.Rarity).ToString("N0")</p>
+                    </div>
+                </div>
+
+                <!-- Valuation Breakdown Box -->
+                <div class="bg-card p-6 rounded-2xl border border-gold-border/50 bg-gradient-to-br from-card to-gold-light/20 shadow-card">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-border-subtle">
+                        <div>
+                            <span class="text-xs uppercase font-bold text-amber-900 tracking-wider">Calculated Valuation</span>
+                            <div class="font-display font-black text-3xl sm:text-4xl text-amber-950 flex items-baseline gap-1 mt-1">
+                                <span class="text-gold-accent font-sans text-xl font-bold">₱</span>
+                                <span>@_creature.GetValuation().ToString("N0")</span>
+                            </div>
+                            @if (_creature.IsFeaturedShowcase)
+                            {
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                    Illustrative collector valuation (Fictional showcase)
+                                </span>
+                            }
+                        </div>
+
+                        <!-- Add to Cart or Showcase Notice -->
+                        <div>
+                            @if (_creature.IsAvailableInShop)
+                            {
+                                <button type="button"
+                                        @onclick="AddToCart"
+                                        class="px-6 py-3 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-sm transition-all shadow-md flex items-center gap-2">
+                                    <span>Add Card to Cart</span>
+                                    <span>+</span>
+                                </button>
+                            }
+                            else
+                            {
+                                <div class="px-4 py-2.5 rounded-xl bg-plum-deep text-gold-accent font-semibold text-xs border border-gold-accent/40 text-center">
+                                    ✦ Archival Showcase Specimen
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Valuation Mathematics Formula Breakdown -->
+                    <div class="text-xs text-ink-muted space-y-1 font-mono">
+                        <div>Base Price: ₱@_creature.BasePrice.ToString("N0")</div>
+                        @if (_creature.Mutations.Any())
+                        {
+                            <div>Active Multipliers: @string.Join(" × ", _creature.Mutations.Select(m => $"{m} ({MutationHelper.GetMultiplier(m)}x)"))</div>
+                        }
+                        else
+                        {
+                            <div>Mutations: None (Base 1.00x)</div>
+                        }
+                        <div class="text-[11px] text-ink-muted/80 pt-1 font-sans">
+                            * Valuation represents a standardized deterministic appraisal simulated for educational collector trading.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Actions -->
+                <div class="flex items-center gap-3">
+                    <a href="/exchange" class="px-4 py-2.5 rounded-xl bg-ivory border border-border-subtle text-ink-primary hover:bg-border-subtle font-medium text-xs transition-colors">
+                        Browse Player Listings for @_creature.Name on The Exchange &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    private Creature? _creature;
+    private VaultCardEntry? _ownershipEntry;
+
+    protected override void OnParametersSet()
+    {
+        _creature = CreatureService.GetCreatureById(Id);
+        if (_creature != null)
+        {
+            _ownershipEntry = CollectionService.GetEntry(_creature.Id);
+        }
+    }
+
+    private void AddToCart()
+    {
+        if (_creature != null && _creature.IsAvailableInShop)
+        {
+            CartService.AddCreature(_creature);
+            NotificationService.ShowToast($"Added {_creature.Name} to cart!");
+        }
+    }
+}
+

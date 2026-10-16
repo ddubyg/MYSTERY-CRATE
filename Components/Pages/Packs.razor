@@ -1,0 +1,218 @@
+@page "/packs"
+@using MysteryCrate.Models
+@using MysteryCrate.Services
+@inject MysteryPackService PackService
+@inject CartService CartService
+@inject NotificationService NotificationService
+@inject CollectionService CollectionService
+
+<PageTitle>Mystery Packs — Veilbound: Origins | Mystery Crate</PageTitle>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+    <!-- Page Header -->
+    <div class="text-center max-w-2xl mx-auto mb-12">
+        <div class="inline-flex items-center gap-1.5 text-xs font-bold tracking-[0.2em] text-purple-muted uppercase mb-1">
+            <span>📦</span>
+            <span>Simulated Unboxing Chamber</span>
+        </div>
+        <h1 class="font-display font-bold text-3xl sm:text-4xl text-ink-primary">
+            Mystery Pack Vaults
+        </h1>
+        <p class="text-sm text-ink-muted mt-3 leading-relaxed">
+            Unseal sealed arcane containers to pull guaranteed rarities and random mutations. All pack openings run as instant local simulations that automatically deposit revealed cards into your personal Vault.
+        </p>
+        <div class="mt-3 inline-block px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs text-amber-800 font-medium">
+            ✦ Academic Simulation: No real currency is charged. Pack odds are predefined and transparent.
+        </div>
+    </div>
+
+    <!-- Packs Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        @foreach (var pack in PackService.GetPacks())
+        {
+            <div class="bg-card rounded-2xl border border-border-subtle p-6 flex flex-col justify-between shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all">
+                <div>
+                    <!-- Pack Badge -->
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border @pack.BadgeColor">
+                            @pack.BadgeText
+                        </span>
+                        <span class="text-xs text-ink-muted font-medium">
+                            Min: @pack.MinGuaranteedRarity+
+                        </span>
+                    </div>
+
+                    <!-- 3D Crate Visual Box -->
+                    <div class="aspect-square w-full rounded-xl bg-gradient-to-br @pack.BoxGradient p-6 flex flex-col items-center justify-center text-center text-white mb-5 shadow-inner relative overflow-hidden group">
+                        <div class="absolute inset-0 prismatic-foil opacity-20 pointer-events-none"></div>
+                        <div class="text-6xl transform group-hover:scale-110 transition-transform duration-300 drop-shadow-md">
+                            @pack.IconEmoji
+                        </div>
+                        <span class="mt-3 text-xs font-bold tracking-wider uppercase text-gold-accent">
+                            @pack.Subtitle
+                        </span>
+                    </div>
+
+                    <!-- Title & Description -->
+                    <h3 class="font-display font-bold text-xl text-ink-primary">
+                        @pack.Name
+                    </h3>
+                    <p class="text-xs text-ink-muted leading-relaxed mt-2 mb-4">
+                        @pack.Description
+                    </p>
+
+                    <!-- Odds Strip -->
+                    <div class="p-2.5 rounded-lg bg-ivory border border-border-subtle text-[11px] text-ink-primary/80 mb-5 flex items-start gap-1.5">
+                        <span class="text-purple-muted font-bold">ℹ</span>
+                        <span>@pack.OddsDescription</span>
+                    </div>
+                </div>
+
+                <!-- Footer: Price & Open Action -->
+                <div class="pt-4 border-t border-border-subtle flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <PriceDisplay Amount="@pack.Price" Label="Pack Price" />
+                        <button type="button"
+                                @onclick="() => AddPackToCart(pack)"
+                                class="px-3 py-1.5 rounded-lg text-xs font-semibold text-plum-secondary bg-purple-light hover:bg-purple-soft transition-colors"
+                                title="Add pack to cart for checkout">
+                            + Cart
+                        </button>
+                    </div>
+
+                    <button type="button"
+                            @onclick="() => ConfirmOpenPack(pack)"
+                            class="w-full py-2.5 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-sm tracking-wide transition-all shadow flex items-center justify-center gap-2">
+                        <span>Open Pack Now</span>
+                        <span>⚡</span>
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- How Pack Opening Simulation Works -->
+    <div class="bg-card rounded-2xl border border-border-subtle p-8 max-w-4xl mx-auto shadow-sm">
+        <h3 class="font-display font-bold text-xl text-ink-primary mb-3">
+            How Mystery Pack Simulations Work
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-ink-muted">
+            <div class="space-y-1.5">
+                <div class="font-bold text-ink-primary flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-purple-light text-plum-deep flex items-center justify-center text-xs">1</span>
+                    Weighted Distribution
+                </div>
+                <p class="text-xs leading-relaxed">
+                    Card drops are calculated using weighted probability tables tied to the pack's minimum guaranteed rarity.
+                </p>
+            </div>
+            <div class="space-y-1.5">
+                <div class="font-bold text-ink-primary flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-purple-light text-plum-deep flex items-center justify-center text-xs">2</span>
+                    Instant Vault Sync
+                </div>
+                <p class="text-xs leading-relaxed">
+                    Any card revealed is instantly synchronized into your in-memory Vault collection, updating your total collection counts.
+                </p>
+            </div>
+            <div class="space-y-1.5">
+                <div class="font-bold text-ink-primary flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-purple-light text-plum-deep flex items-center justify-center text-xs">3</span>
+                    Safe & Educational
+                </div>
+                <p class="text-xs leading-relaxed">
+                    Built to demonstrate state management, reactive event notifications, and modal unboxing UI in modern Blazor.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Dialog before Opening -->
+<ConfirmationDialog IsOpen="@_showConfirmation"
+                    IsOpenChanged="OnConfirmClosed"
+                    Title="@($"Open {_selectedPack?.Name}?")"
+                    Message="@($"Are you ready to break the seal on the {_selectedPack?.Name}? A creature will be rolled from the pack's probability pool and transferred to your personal Vault.")"
+                    ConfirmButtonText="Unseal Pack"
+                    CancelButtonText="Cancel"
+                    OnConfirm="ExecutePackOpening" />
+
+<!-- Pack Unboxing Reveal Modal -->
+@if (_revealedCreature != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-plum-deep/80 backdrop-blur-md animate-in fade-in duration-300">
+        <div class="bg-card rounded-2xl border-2 border-gold-accent p-6 sm:p-8 max-w-md w-full shadow-2xl text-center flex flex-col items-center animate-in zoom-in-95 duration-300 relative overflow-hidden">
+            <!-- Confetti / Glow backdrop -->
+            <div class="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-gold-accent/20 blur-2xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-48 h-48 rounded-full bg-purple-muted/30 blur-2xl pointer-events-none"></div>
+
+            <div class="inline-flex items-center gap-1 text-xs font-bold text-gold-accent tracking-widest uppercase mb-1">
+                <span>✦</span>
+                <span>PACK UNSEALED</span>
+                <span>✦</span>
+            </div>
+
+            <h3 class="font-display font-black text-2xl text-ink-primary mb-4">
+                You Discovered a Creature!
+            </h3>
+
+            <!-- Revealed Creature Card Presentation -->
+            <div class="w-full max-w-xs mb-6">
+                <CreatureCard Creature="@_revealedCreature" OwnershipCount="@(CollectionService.GetEntry(_revealedCreature.Id)?.Quantity ?? 1)" ShowAddToCart="false" />
+            </div>
+
+            <p class="text-xs text-ink-muted mb-6">
+                <strong>@_revealedCreature.Name</strong> has been added to your Vault! You now own @(CollectionService.GetEntry(_revealedCreature.Id)?.Quantity ?? 1) copy of this card.
+            </p>
+
+            <div class="flex items-center gap-3 w-full">
+                <a href="/vault" class="flex-1 py-2.5 rounded-xl bg-ivory border border-border-subtle text-ink-primary hover:bg-border-subtle font-semibold text-xs transition-colors">
+                    View in My Vault
+                </a>
+                <button type="button"
+                        @onclick="CloseRevealModal"
+                        class="flex-1 py-2.5 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-xs transition-colors shadow">
+                    Keep Opening
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private MysteryPack? _selectedPack;
+    private bool _showConfirmation = false;
+    private Creature? _revealedCreature;
+
+    private void AddPackToCart(MysteryPack pack)
+    {
+        CartService.AddPack(pack);
+        NotificationService.ShowToast($"Added {pack.Name} to cart!");
+    }
+
+    private void ConfirmOpenPack(MysteryPack pack)
+    {
+        _selectedPack = pack;
+        _showConfirmation = true;
+    }
+
+    private void OnConfirmClosed(bool isOpen)
+    {
+        _showConfirmation = isOpen;
+    }
+
+    private void ExecutePackOpening()
+    {
+        if (_selectedPack != null)
+        {
+            var result = PackService.OpenPack(_selectedPack.Id);
+            _revealedCreature = result;
+            NotificationService.ShowToast($"Unboxed {result.Name} ({result.Rarity})!", "success");
+        }
+    }
+
+    private void CloseRevealModal()
+    {
+        _revealedCreature = null;
+    }
+}

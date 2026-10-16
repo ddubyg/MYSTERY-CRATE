@@ -1,0 +1,196 @@
+@page "/vault"
+@using MysteryCrate.Models
+@using MysteryCrate.Services
+@inject CollectionService CollectionService
+@implements IDisposable
+
+<PageTitle>My Vault — Veilbound: Origins | Mystery Crate</PageTitle>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+    <!-- Vault Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+            <div class="inline-flex items-center gap-1.5 text-xs font-bold tracking-[0.2em] text-purple-muted uppercase mb-1">
+                <span>🏛️</span>
+                <span>Personal Collection Archive</span>
+            </div>
+            <h1 class="font-display font-bold text-3xl sm:text-4xl text-ink-primary">
+                My Vault
+            </h1>
+            <p class="text-sm text-ink-muted mt-2 max-w-xl">
+                Manage your owned creature cards, monitor cumulative portfolio valuation, and inspect specimen traits acquired through pack unboxings and trades.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="/packs" class="px-4 py-2.5 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-semibold text-xs transition-colors shadow-sm flex items-center gap-1.5">
+                <span>Open New Packs</span>
+                <span>📦</span>
+            </a>
+            <a href="/trades" class="px-4 py-2.5 rounded-xl bg-purple-light hover:bg-purple-soft text-plum-secondary font-semibold text-xs transition-colors border border-border-subtle flex items-center gap-1.5">
+                <span>Trade Cards</span>
+                <span>⇄</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Collection Metrics Dashboard -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <!-- Total Cards -->
+        <div class="bg-card p-5 rounded-2xl border border-border-subtle shadow-card flex flex-col justify-between">
+            <span class="text-xs uppercase font-semibold text-ink-muted tracking-wider">Total Cards Owned</span>
+            <div class="flex items-baseline gap-2 mt-2">
+                <span class="font-display font-black text-3xl text-ink-primary">@CollectionService.GetTotalCardCount()</span>
+                <span class="text-xs text-purple-muted font-medium">(@CollectionService.GetUniqueCount() unique)</span>
+            </div>
+        </div>
+
+        <!-- Portfolio Valuation -->
+        <div class="bg-card p-5 rounded-2xl border border-gold-border/40 bg-gradient-to-br from-card to-gold-light/20 shadow-card flex flex-col justify-between">
+            <span class="text-xs uppercase font-semibold text-amber-900 tracking-wider">Vault Valuation</span>
+            <div class="flex items-baseline gap-1 mt-2">
+                <span class="text-gold-accent font-bold text-lg font-sans">₱</span>
+                <span class="font-display font-black text-3xl text-amber-950">@CollectionService.GetTotalCollectionValuation().ToString("N0")</span>
+            </div>
+        </div>
+
+        <!-- Total Mutations -->
+        <div class="bg-card p-5 rounded-2xl border border-border-subtle shadow-card flex flex-col justify-between">
+            <span class="text-xs uppercase font-semibold text-ink-muted tracking-wider">Mutations Recorded</span>
+            <div class="flex items-baseline gap-2 mt-2">
+                <span class="font-display font-black text-3xl text-ink-primary">@CollectionService.GetTotalMutationsCount()</span>
+                <span class="text-xs text-purple-muted font-medium">active traits</span>
+            </div>
+        </div>
+
+        <!-- Session Status -->
+        <div class="bg-card p-5 rounded-2xl border border-border-subtle shadow-card flex flex-col justify-between">
+            <span class="text-xs uppercase font-semibold text-ink-muted tracking-wider">Storage State</span>
+            <div class="flex items-center gap-2 mt-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-xs font-bold text-ink-primary">Active Memory Circuit</span>
+            </div>
+            <span class="text-[10px] text-ink-muted mt-1">Live scoped session memory</span>
+        </div>
+    </div>
+
+    <!-- Rarity Breakdown Strip -->
+    <div class="bg-card p-4 rounded-xl border border-border-subtle shadow-sm mb-8 flex flex-wrap items-center justify-between gap-3">
+        <span class="text-xs font-bold uppercase tracking-wider text-ink-muted">Rarity Breakdown:</span>
+        <div class="flex flex-wrap items-center gap-2">
+            @foreach (var kvp in CollectionService.GetRarityBreakdown())
+            {
+                <div class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-ivory border border-border-subtle text-xs">
+                    <RarityBadge Rarity="@kvp.Key" />
+                    <span class="font-bold text-ink-primary ml-1">×@kvp.Value</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Filter & Search Controls -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+        <SearchBar Value="@_searchTerm" ValueChanged="OnSearchChanged" Placeholder="Search owned cards by name or type..." />
+
+        <!-- Rarity Filter Filter -->
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+            <label class="text-xs font-medium text-ink-muted">Filter:</label>
+            <select value="@(_selectedRarity?.ToString() ?? "All")"
+                    @onchange="OnRarityChanged"
+                    class="bg-card border border-border-subtle rounded-xl px-3 py-2 text-xs font-medium text-ink-primary focus:outline-none focus:ring-1 focus:ring-purple-muted">
+                <option value="All">All Rarities</option>
+                @foreach (RarityTier tier in Enum.GetValues<RarityTier>())
+                {
+                    <option value="@tier.ToString()">@tier.ToString()</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <!-- Owned Cards Grid -->
+    @if (FilteredEntries.Count == 0)
+    {
+        @if (CollectionService.GetTotalCardCount() == 0)
+        {
+            <EmptyState Icon="🏛️"
+                        Title="Your Vault is Empty"
+                        Message="You do not currently own any creature cards. Open Mystery Packs or acquire cards from the shop to build your collection!"
+                        ActionText="Open Mystery Packs"
+                        ActionUrl="/packs" />
+        }
+        else
+        {
+            <EmptyState Icon="🔍"
+                        Title="No owned cards match filter"
+                        Message="None of your owned cards matched the current search criteria."
+                        ActionText="Clear Filter"
+                        OnAction="ClearFilter" />
+        }
+    }
+    else
+    {
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            @foreach (var entry in FilteredEntries)
+            {
+                <CreatureCard Creature="@entry.Creature" OwnershipCount="@entry.Quantity" ShowAddToCart="false" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private string _searchTerm = string.Empty;
+    private RarityTier? _selectedRarity;
+
+    protected override void OnInitialized()
+    {
+        CollectionService.OnChange += StateHasChanged;
+    }
+
+    private List<VaultCardEntry> FilteredEntries
+    {
+        get
+        {
+            var query = CollectionService.GetOwnedCards().AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(_searchTerm))
+            {
+                query = query.Where(e =>
+                    e.Creature.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    e.Creature.CreatureType.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (_selectedRarity.HasValue)
+            {
+                query = query.Where(e => e.Creature.Rarity == _selectedRarity.Value);
+            }
+
+            return query.ToList();
+        }
+    }
+
+    private void OnSearchChanged(string term)
+    {
+        _searchTerm = term;
+    }
+
+    private void OnRarityChanged(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString();
+        _selectedRarity = (!string.IsNullOrEmpty(val) && val != "All" && Enum.TryParse<RarityTier>(val, out var parsed))
+            ? parsed
+            : null;
+    }
+
+    private void ClearFilter()
+    {
+        _searchTerm = string.Empty;
+        _selectedRarity = null;
+    }
+
+    public void Dispose()
+    {
+        CollectionService.OnChange -= StateHasChanged;
+    }
+}
+

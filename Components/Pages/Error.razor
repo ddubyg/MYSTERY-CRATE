@@ -1,0 +1,38 @@
+@page "/Error"
+@using System.Diagnostics
+
+<PageTitle>Error — Mystery Crate</PageTitle>
+
+<div class="max-w-2xl mx-auto px-4 py-16 text-center">
+    <div class="bg-card rounded-2xl border border-rose-200 p-8 shadow-card">
+        <div class="w-16 h-16 rounded-full bg-rose-50 text-rose-700 text-3xl flex items-center justify-center mx-auto mb-4">
+            ⚠️
+        </div>
+        <h1 class="font-display font-bold text-2xl text-ink-primary mb-2">An Unexpected Anomaly Occurred</h1>
+        <p class="text-sm text-ink-muted mb-6">
+            The Veilbound gateway encountered an unexpected disruption while processing your request.
+        </p>
+
+        @if (ShowRequestId)
+        {
+            <div class="p-3 bg-ivory rounded-xl border border-border-subtle font-mono text-xs text-ink-muted mb-6">
+                Trace Identifier: @RequestId
+            </div>
+        }
+
+        <a href="/" class="px-5 py-2.5 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-xs transition-colors shadow">
+            Return to Discover
+        </a>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    private string? RequestId { get; set; }
+    private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+
+    protected override void OnInitialized() =>
+        RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+}

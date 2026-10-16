@@ -1,0 +1,395 @@
+@page "/trades"
+@using MysteryCrate.Models
+@using MysteryCrate.Services
+@inject TradeService TradeService
+@inject CollectionService CollectionService
+@inject NotificationService NotificationService
+@implements IDisposable
+
+<PageTitle>Trade Hub — Veilbound: Origins | Mystery Crate</PageTitle>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="inline-flex items-center gap-1.5 text-xs font-bold tracking-[0.2em] text-purple-muted uppercase mb-1">
+            <span>⇄</span>
+            <span>Simulated Barter Network</span>
+        </div>
+        <h1 class="font-display font-bold text-3xl sm:text-4xl text-ink-primary">
+            Trade Hub
+        </h1>
+        <p class="text-sm text-ink-muted mt-2 max-w-xl">
+            Negotiate card exchanges with distinguished realm traders. Offer cards from your personal vault in exchange for rare specimens from their private collections.
+        </p>
+    </div>
+
+    <!-- Trade Partner Selector -->
+    <div class="bg-card p-6 rounded-2xl border border-border-subtle shadow-sm mb-8">
+        <label class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-3">
+            Select Trading Partner
+        </label>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            @foreach (var partner in TradeService.Partners)
+            {
+                <button type="button"
+                        @onclick="() => SelectPartner(partner)"
+                        class="p-4 rounded-xl border text-left transition-all flex items-start gap-3.5 @(_selectedPartner?.Id == partner.Id ? "border-gold-accent bg-gold-light/20 ring-1 ring-gold-accent" : "border-border-subtle hover:bg-ivory")">
+                    <div class="w-11 h-11 rounded-xl bg-purple-light text-plum-secondary flex items-center justify-center text-2xl flex-shrink-0 shadow-sm">
+                        @partner.AvatarEmoji
+                    </div>
+                    <div>
+                        <div class="font-display font-bold text-base text-ink-primary leading-tight">@partner.Name</div>
+                        <div class="text-xs text-purple-muted font-medium mt-0.5">@partner.Title</div>
+                        <p class="text-[11px] text-ink-muted mt-2 line-clamp-2">@partner.Bio</p>
+                    </div>
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (_selectedPartner != null)
+    {
+        <!-- Trading Table Interface: 2-Sided Swap Matrix -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
+            <!-- Left Side: User Vault Available Inventory -->
+            <div class="lg:col-span-4 bg-card rounded-2xl border border-border-subtle p-5 shadow-card flex flex-col">
+                <div class="flex items-center justify-between pb-3 mb-4 border-b border-border-subtle">
+                    <span class="font-display font-bold text-base text-ink-primary">Your Vault Cards</span>
+                    <span class="text-xs text-purple-muted font-bold">@CollectionService.GetTotalCardCount() cards</span>
+                </div>
+
+                @if (CollectionService.GetOwnedCards().Count == 0)
+                {
+                    <div class="text-center py-8 text-xs text-ink-muted">
+                        No cards in vault to offer.
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-2 overflow-y-auto max-h-96 pr-1">
+                        @foreach (var entry in CollectionService.GetOwnedCards())
+                        {
+                            var currentlyOffered = _offeredCards.FirstOrDefault(o => o.Creature.Id == entry.Creature.Id)?.Quantity ?? 0;
+                            var remainingAvailable = entry.Quantity - currentlyOffered;
+
+                            <div class="p-3 rounded-xl border border-border-subtle flex items-center justify-between gap-3 bg-ivory hover:border-purple-muted/40 transition-colors">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="text-2xl">@entry.Creature.EmojiArt</span>
+                                    <div class="min-w-0">
+                                        <div class="text-xs font-bold text-ink-primary truncate">@entry.Creature.Name</div>
+                                        <div class="text-[11px] text-ink-muted">
+                                            @entry.Creature.Rarity • ₱@entry.Creature.GetValuation().ToString("N0")
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[11px] text-ink-muted font-medium">Avail: @remainingAvailable</span>
+                                    <button type="button"
+                                            disabled="@(remainingAvailable <= 0)"
+                                            @onclick="() => OfferCard(entry.Creature)"
+                                            class="px-2.5 py-1 rounded-lg text-xs font-bold bg-plum-deep text-gold-accent hover:bg-plum-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                                        + Offer
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Middle: Active Proposal Summary & Evaluation -->
+            <div class="lg:col-span-4 bg-gradient-to-b from-card to-purple-light/20 rounded-2xl border-2 border-purple-muted/30 p-5 shadow-card flex flex-col justify-between">
+                <div>
+                    <div class="text-center pb-3 mb-4 border-b border-border-subtle">
+                        <span class="font-display font-bold text-lg text-plum-deep">Proposed Exchange</span>
+                        <div class="text-[11px] text-purple-muted">With @_selectedPartner.Name</div>
+                    </div>
+
+                    <!-- You Offer Column -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between text-xs font-bold uppercase text-ink-muted mb-2">
+                            <span>You Give:</span>
+                            <span class="text-gold-accent font-sans">Val: ₱@TotalOfferedValue.ToString("N0")</span>
+                        </div>
+                        @if (_offeredCards.Count == 0)
+                        {
+                            <div class="p-3 rounded-xl border border-dashed border-border-subtle text-center text-xs text-ink-muted">
+                                Click "+ Offer" on your cards to add them
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="space-y-1.5 max-h-36 overflow-y-auto">
+                                @foreach (var item in _offeredCards)
+                                {
+                                    <div class="px-2.5 py-1.5 rounded-lg bg-card border border-border-subtle flex items-center justify-between text-xs">
+                                        <span class="font-medium text-ink-primary">@item.Quantity × @item.Creature.Name</span>
+                                        <button type="button" @onclick="() => RemoveOffered(item.Creature.Id)" class="text-rose-600 hover:text-rose-800 font-bold px-1">
+                                            ✕
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Partner Gives Column -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between text-xs font-bold uppercase text-ink-muted mb-2">
+                            <span>You Receive:</span>
+                            <span class="text-gold-accent font-sans">Val: ₱@TotalRequestedValue.ToString("N0")</span>
+                        </div>
+                        @if (_requestedCards.Count == 0)
+                        {
+                            <div class="p-3 rounded-xl border border-dashed border-border-subtle text-center text-xs text-ink-muted">
+                                Click "+ Request" on partner's cards to add them
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="space-y-1.5 max-h-36 overflow-y-auto">
+                                @foreach (var item in _requestedCards)
+                                {
+                                    <div class="px-2.5 py-1.5 rounded-lg bg-card border border-border-subtle flex items-center justify-between text-xs">
+                                        <span class="font-medium text-ink-primary">@item.Quantity × @item.Creature.Name</span>
+                                        <button type="button" @onclick="() => RemoveRequested(item.Creature.Id)" class="text-rose-600 hover:text-rose-800 font-bold px-1">
+                                            ✕
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Evaluation Banner -->
+                    <div class="p-3 rounded-xl border text-xs font-medium mb-4 @EvaluationBadgeClass">
+                        @EvaluationMessage
+                    </div>
+                </div>
+
+                <!-- Confirm Trade Button -->
+                <button type="button"
+                        disabled="@(!_isTradeValid)"
+                        @onclick="OpenConfirmation"
+                        class="w-full py-3 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary disabled:opacity-40 disabled:cursor-not-allowed font-bold text-sm tracking-wide transition-all shadow">
+                    Execute Trade Exchange
+                </button>
+            </div>
+
+            <!-- Right Side: Partner Available Cards -->
+            <div class="lg:col-span-4 bg-card rounded-2xl border border-border-subtle p-5 shadow-card flex flex-col">
+                <div class="flex items-center justify-between pb-3 mb-4 border-b border-border-subtle">
+                    <span class="font-display font-bold text-base text-ink-primary">@_selectedPartner.Name's Stash</span>
+                    <span class="text-xs text-purple-muted font-bold">@PartnerInventory.Count cards</span>
+                </div>
+
+                <div class="space-y-2 overflow-y-auto max-h-96 pr-1">
+                    @foreach (var creature in PartnerInventory)
+                    {
+                        var currentlyRequested = _requestedCards.FirstOrDefault(r => r.Creature.Id == creature.Id)?.Quantity ?? 0;
+
+                        <div class="p-3 rounded-xl border border-border-subtle flex items-center justify-between gap-3 bg-ivory hover:border-purple-muted/40 transition-colors">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <span class="text-2xl">@creature.EmojiArt</span>
+                                <div class="min-w-0">
+                                    <div class="text-xs font-bold text-ink-primary truncate">@creature.Name</div>
+                                    <div class="text-[11px] text-ink-muted">
+                                        @creature.Rarity • ₱@creature.GetValuation().ToString("N0")
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button"
+                                    @onclick="() => RequestCard(creature)"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-light text-plum-secondary hover:bg-purple-soft transition-colors flex-shrink-0">
+                                + Request
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Trade History Archive -->
+    <div class="bg-card rounded-2xl border border-border-subtle p-6 shadow-sm">
+        <h3 class="font-display font-bold text-xl text-ink-primary mb-4 flex items-center gap-2">
+            <span>📜</span>
+            <span>Simulated Trade History</span>
+        </h3>
+
+        @if (TradeService.History.Count == 0)
+        {
+            <p class="text-xs text-ink-muted italic">
+                No trades have been completed during this session yet. Propose an exchange above to test trading!
+            </p>
+        }
+        else
+        {
+            <div class="space-y-3">
+                @foreach (var log in TradeService.History)
+                {
+                    <div class="p-3.5 rounded-xl bg-ivory border border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-800">COMPLETED</span>
+                            <span class="font-semibold text-ink-primary">@log.SummaryText</span>
+                        </div>
+                        <span class="text-ink-muted">
+                            @log.CompletedAt.ToLocalTime().ToString("g")
+                        </span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Confirmation Dialog for Trade -->
+<ConfirmationDialog IsOpen="@_showConfirmation"
+                    IsOpenChanged="OnConfirmClosed"
+                    Title="Confirm Trade Agreement"
+                    Message="@($"Are you sure you want to finalize this trade with {_selectedPartner?.Name}? Your offered cards will be transferred from your vault in exchange for the requested cards.")"
+                    ConfirmButtonText="Finalize Trade"
+                    CancelButtonText="Cancel"
+                    OnConfirm="ConfirmTrade" />
+
+@code {
+    private TradePartner? _selectedPartner;
+    private List<TradeSelectionItem> _offeredCards = new();
+    private List<TradeSelectionItem> _requestedCards = new();
+    private bool _showConfirmation = false;
+    private bool _isTradeValid = false;
+    private string _evaluationMessage = "Select cards on both sides to evaluate trade balance.";
+    private string _evaluationBadgeClass = "bg-stone-50 text-stone-600 border-stone-200";
+
+    protected override void OnInitialized()
+    {
+        TradeService.OnChange += StateHasChanged;
+        CollectionService.OnChange += StateHasChanged;
+
+        _selectedPartner = TradeService.Partners.FirstOrDefault();
+        ReevaluateTrade();
+    }
+
+    private List<Creature> PartnerInventory => _selectedPartner != null
+        ? TradeService.GetPartnerInventory(_selectedPartner)
+        : new List<Creature>();
+
+    private decimal TotalOfferedValue => _offeredCards.Sum(o => o.Creature.GetValuation() * o.Quantity);
+    private decimal TotalRequestedValue => _requestedCards.Sum(r => r.Creature.GetValuation() * r.Quantity);
+    private string EvaluationMessage => _evaluationMessage;
+    private string EvaluationBadgeClass => _evaluationBadgeClass;
+
+    private void SelectPartner(TradePartner partner)
+    {
+        _selectedPartner = partner;
+        _requestedCards.Clear();
+        ReevaluateTrade();
+    }
+
+    private void OfferCard(Creature creature)
+    {
+        var existing = _offeredCards.FirstOrDefault(o => o.Creature.Id == creature.Id);
+        if (existing != null)
+        {
+            existing.Quantity++;
+        }
+        else
+        {
+            _offeredCards.Add(new TradeSelectionItem { Creature = creature, Quantity = 1 });
+        }
+        ReevaluateTrade();
+    }
+
+    private void RemoveOffered(string creatureId)
+    {
+        var item = _offeredCards.FirstOrDefault(o => o.Creature.Id == creatureId);
+        if (item != null)
+        {
+            if (item.Quantity > 1) item.Quantity--;
+            else _offeredCards.Remove(item);
+            ReevaluateTrade();
+        }
+    }
+
+    private void RequestCard(Creature creature)
+    {
+        var existing = _requestedCards.FirstOrDefault(r => r.Creature.Id == creature.Id);
+        if (existing != null)
+        {
+            existing.Quantity++;
+        }
+        else
+        {
+            _requestedCards.Add(new TradeSelectionItem { Creature = creature, Quantity = 1 });
+        }
+        ReevaluateTrade();
+    }
+
+    private void RemoveRequested(string creatureId)
+    {
+        var item = _requestedCards.FirstOrDefault(r => r.Creature.Id == creatureId);
+        if (item != null)
+        {
+            if (item.Quantity > 1) item.Quantity--;
+            else _requestedCards.Remove(item);
+            ReevaluateTrade();
+        }
+    }
+
+    private void ReevaluateTrade()
+    {
+        if (_selectedPartner == null || _offeredCards.Count == 0 || _requestedCards.Count == 0)
+        {
+            _isTradeValid = false;
+            _evaluationMessage = "Select at least 1 card from your vault and 1 card from your partner.";
+            _evaluationBadgeClass = "bg-stone-50 text-stone-600 border-stone-200";
+            return;
+        }
+
+        var validation = TradeService.ValidateTrade(_selectedPartner, _offeredCards, _requestedCards);
+        _isTradeValid = validation.IsValid;
+
+        if (validation.IsValid)
+        {
+            _evaluationMessage = $"✓ Fair Agreement: {_selectedPartner.Name} accepts this trade!";
+            _evaluationBadgeClass = "bg-emerald-50 text-emerald-800 border-emerald-300";
+        }
+        else
+        {
+            _evaluationMessage = $"⚠ {validation.Message}";
+            _evaluationBadgeClass = "bg-amber-50 text-amber-800 border-amber-300";
+        }
+    }
+
+    private void OpenConfirmation() => _showConfirmation = true;
+
+    private void OnConfirmClosed(bool isOpen) => _showConfirmation = isOpen;
+
+    private void ConfirmTrade()
+    {
+        if (_selectedPartner != null)
+        {
+            var res = TradeService.ExecuteTrade(_selectedPartner, _offeredCards, _requestedCards);
+            if (res.Success)
+            {
+                NotificationService.ShowToast(res.Message, "success");
+                _offeredCards.Clear();
+                _requestedCards.Clear();
+                ReevaluateTrade();
+            }
+            else
+            {
+                NotificationService.ShowToast(res.Message, "error");
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        TradeService.OnChange -= StateHasChanged;
+        CollectionService.OnChange -= StateHasChanged;
+    }
+}
+

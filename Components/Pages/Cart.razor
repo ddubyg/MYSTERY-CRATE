@@ -1,0 +1,197 @@
+@page "/cart"
+@using MysteryCrate.Models
+@using MysteryCrate.Services
+@inject CartService CartService
+@inject NotificationService NotificationService
+@implements IDisposable
+
+<PageTitle>Cart — Veilbound: Origins | Mystery Crate</PageTitle>
+
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="inline-flex items-center gap-1.5 text-xs font-bold tracking-[0.2em] text-purple-muted uppercase mb-1">
+            <span>🛒</span>
+            <span>Simulated Checkout Queue</span>
+        </div>
+        <h1 class="font-display font-bold text-3xl sm:text-4xl text-ink-primary">
+            Shopping Cart
+        </h1>
+        <p class="text-sm text-ink-muted mt-2">
+            Review your selected creature cards, mystery boxes, and marketplace acquisitions before proceeding to simulated order finalization.
+        </p>
+    </div>
+
+    @if (CartService.Items.Count == 0)
+    {
+        <EmptyState Icon="🛒"
+                    Title="Your Cart is Empty"
+                    Message="You have not added any cards or mystery packs to your cart yet. Discover rare creatures in the Card Shop or try your luck in Mystery Packs!"
+                    ActionText="Browse Card Shop"
+                    ActionUrl="/shop" />
+    }
+    else
+    {
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+            <!-- Items Table List -->
+            <div class="lg:col-span-8 bg-card rounded-2xl border border-border-subtle p-6 shadow-sm">
+                <div class="flex items-center justify-between pb-4 mb-4 border-b border-border-subtle">
+                    <span class="font-display font-bold text-base text-ink-primary">
+                        Cart Items (@CartService.TotalCount total items)
+                    </span>
+                    <button type="button"
+                            @onclick="ClearCart"
+                            class="text-xs text-rose-600 hover:text-rose-800 font-semibold transition-colors">
+                        Clear Entire Cart
+                    </button>
+                </div>
+
+                <div class="divide-y divide-border-subtle">
+                    @foreach (var item in CartService.Items)
+                    {
+                        <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <!-- Item Identity -->
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 rounded-xl bg-purple-light text-plum-secondary flex items-center justify-center text-3xl flex-shrink-0 shadow-inner">
+                                    @item.Emoji
+                                </div>
+                                <div>
+                                    <h4 class="font-display font-bold text-base text-ink-primary">
+                                        @item.Title
+                                    </h4>
+                                    <div class="flex items-center gap-2 mt-0.5">
+                                        <span class="text-xs text-ink-muted">@item.Subtitle</span>
+                                        @if (!string.IsNullOrEmpty(item.Badge))
+                                        {
+                                            <span class="px-2 py-0.2 rounded text-[10px] font-bold bg-ivory border border-border-subtle text-ink-muted">
+                                                @item.Badge
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="text-xs font-semibold text-purple-muted sm:hidden mt-1">
+                                        ₱@item.UnitPrice.ToString("N0") each
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quantity Controls & Subtotal -->
+                            <div class="flex items-center justify-between sm:justify-end gap-6">
+                                <!-- Price per unit on desktop -->
+                                <div class="hidden sm:block text-right">
+                                    <span class="text-xs text-ink-muted">Price:</span>
+                                    <div class="text-sm font-bold text-ink-primary">₱@item.UnitPrice.ToString("N0")</div>
+                                </div>
+
+                                <!-- Quantity Stepper -->
+                                <div class="flex items-center border border-border-subtle rounded-xl overflow-hidden bg-ivory">
+                                    <button type="button"
+                                            @onclick="() => CartService.UpdateQuantity(item.Id, item.Quantity - 1)"
+                                            class="w-8 h-8 flex items-center justify-center text-ink-muted hover:bg-card transition-colors font-bold text-sm">
+                                        -
+                                    </button>
+                                    <span class="w-9 text-center text-xs font-bold text-ink-primary">
+                                        @item.Quantity
+                                    </span>
+                                    <button type="button"
+                                            @onclick="() => CartService.UpdateQuantity(item.Id, item.Quantity + 1)"
+                                            class="w-8 h-8 flex items-center justify-center text-ink-muted hover:bg-card transition-colors font-bold text-sm">
+                                        +
+                                    </button>
+                                </div>
+
+                                <!-- Line Total -->
+                                <div class="text-right min-w-[70px]">
+                                    <span class="font-display font-bold text-base text-ink-primary">
+                                        ₱@item.Total.ToString("N0")
+                                    </span>
+                                </div>
+
+                                <!-- Remove -->
+                                <button type="button"
+                                        @onclick="() => RemoveItem(item.Id)"
+                                        class="text-ink-muted hover:text-rose-600 transition-colors p-1"
+                                        title="Remove item">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="lg:col-span-4 bg-card rounded-2xl border border-border-subtle p-6 shadow-card space-y-5">
+                <h3 class="font-display font-bold text-lg text-ink-primary pb-3 border-b border-border-subtle">
+                    Order Summary
+                </h3>
+
+                <div class="space-y-3 text-sm">
+                    <div class="flex items-center justify-between text-ink-muted">
+                        <span>Items Subtotal:</span>
+                        <span class="font-semibold text-ink-primary">₱@CartService.Subtotal.ToString("N0")</span>
+                    </div>
+
+                    <div class="flex items-center justify-between text-ink-muted">
+                        <div class="flex items-center gap-1">
+                            <span>Simulated Delivery:</span>
+                            <span class="text-[10px] text-purple-muted font-bold">(Free > ₱1,500)</span>
+                        </div>
+                        <span class="font-semibold @(CartService.ShippingFee == 0 ? "text-emerald-700" : "text-ink-primary")">
+                            @(CartService.ShippingFee == 0 ? "FREE" : $"₱{CartService.ShippingFee:N0}")
+                        </span>
+                    </div>
+
+                    <div class="pt-3 border-t border-border-subtle flex items-center justify-between">
+                        <span class="font-display font-bold text-base text-ink-primary">Estimated Total:</span>
+                        <div class="font-display font-black text-2xl text-amber-950 flex items-baseline gap-1">
+                            <span class="text-gold-accent font-sans text-base">₱</span>
+                            <span>@CartService.Total.ToString("N0")</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Disclaimer -->
+                <div class="p-3 rounded-xl bg-ivory border border-border-subtle text-[11px] text-ink-muted leading-relaxed">
+                    ✦ Educational Sandbox: No real payment credentials will be requested. Completing checkout adds cards directly to your Vault.
+                </div>
+
+                <!-- Proceed to Checkout Button -->
+                <a href="/checkout" class="w-full py-3.5 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-sm tracking-wide transition-all shadow-md flex items-center justify-center gap-2">
+                    <span>Proceed to Simulated Checkout</span>
+                    <span>&rarr;</span>
+                </a>
+
+                <a href="/shop" class="block text-center text-xs font-semibold text-purple-muted hover:text-plum-deep transition-colors">
+                    &larr; Continue Browsing Shop
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        CartService.OnChange += StateHasChanged;
+    }
+
+    private void RemoveItem(string id)
+    {
+        CartService.RemoveItem(id);
+        NotificationService.ShowToast("Item removed from cart.", "info");
+    }
+
+    private void ClearCart()
+    {
+        CartService.ClearCart();
+        NotificationService.ShowToast("Cart cleared.", "info");
+    }
+
+    public void Dispose()
+    {
+        CartService.OnChange -= StateHasChanged;
+    }
+}
+

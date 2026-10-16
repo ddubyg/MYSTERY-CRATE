@@ -1,0 +1,348 @@
+@page "/exchange"
+@using MysteryCrate.Models
+@using MysteryCrate.Services
+@inject MarketplaceService MarketService
+@inject CollectionService CollectionService
+@inject NotificationService NotificationService
+@implements IDisposable
+
+<PageTitle>The Exchange — Veilbound Marketplace | Mystery Crate</PageTitle>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+            <div class="inline-flex items-center gap-1.5 text-xs font-bold tracking-[0.2em] text-purple-muted uppercase mb-1">
+                <span>⚖️</span>
+                <span>Peer-to-Peer Trading Post</span>
+            </div>
+            <h1 class="font-display font-bold text-3xl sm:text-4xl text-ink-primary">
+                The Exchange
+            </h1>
+            <p class="text-sm text-ink-muted mt-2 max-w-xl">
+                Browse secondary market listings curated by fictional realm collectors or post cards from your personal vault for simulated sale.
+            </p>
+        </div>
+
+        <!-- Action: List a Card -->
+        <button type="button"
+                @onclick="OpenCreateListingModal"
+                class="px-5 py-3 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-xs sm:text-sm transition-all shadow-md flex items-center gap-2 self-start md:self-auto">
+            <span>+ List Card from Vault</span>
+        </button>
+    </div>
+
+    <!-- Academic Disclaimer Strip -->
+    <div class="mb-8 p-3 rounded-xl bg-purple-light/70 border border-border-subtle flex items-center gap-2 text-xs text-plum-secondary">
+        <span class="text-gold-accent font-bold">ℹ</span>
+        <span>Simulated Marketplace Environment: Seller profiles and transactions are local demonstration artifacts. No actual payments or multi-user accounts exist.</span>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <div class="bg-card p-4 rounded-xl border border-border-subtle shadow-sm mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <SearchBar Value="@_searchTerm" ValueChanged="OnSearchChanged" Placeholder="Search listing by creature or seller..." />
+
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <!-- Rarity Filter -->
+            <div class="flex items-center gap-1.5 text-xs">
+                <label class="font-medium text-ink-muted">Rarity:</label>
+                <select value="@(_selectedRarity?.ToString() ?? "All")"
+                        @onchange="OnRarityChanged"
+                        class="bg-ivory border border-border-subtle rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-primary focus:outline-none">
+                    <option value="All">All</option>
+                    @foreach (RarityTier tier in Enum.GetValues<RarityTier>())
+                    {
+                        <option value="@tier.ToString()">@tier.ToString()</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Sort Select -->
+            <div class="flex items-center gap-1.5 text-xs">
+                <label class="font-medium text-ink-muted">Sort:</label>
+                <select value="@_selectedSort"
+                        @onchange="OnSortChanged"
+                        class="bg-ivory border border-border-subtle rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-primary focus:outline-none">
+                    <option value="date-newest">Newest First</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="name-asc">Creature Name</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Listings Grid -->
+    @if (DisplayedListings.Count == 0)
+    {
+        <EmptyState Icon="⚖️"
+                    Title="No Active Listings Found"
+                    Message="No market listings match your current filters. Be the first to list a card from your vault!"
+                    ActionText="List a Card from Vault"
+                    OnAction="OpenCreateListingModal" />
+    }
+    else
+    {
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach (var listing in DisplayedListings)
+            {
+                <div class="bg-card rounded-2xl border border-border-subtle p-5 flex flex-col justify-between shadow-card hover:shadow-card-hover transition-all relative overflow-hidden">
+                    <div>
+                        <!-- Seller Header -->
+                        <div class="flex items-center justify-between pb-3 mb-4 border-b border-border-subtle">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-full bg-purple-light text-plum-secondary flex items-center justify-center text-xs font-bold">
+                                    @listing.SellerName[0]
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-bold text-ink-primary leading-tight">@listing.SellerName</span>
+                                    <span class="text-[10px] text-purple-muted font-medium">@listing.SellerBadge</span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-ink-muted">
+                                @listing.ListedAt.ToLocalTime().ToString("MMM dd")
+                            </span>
+                        </div>
+
+                        <!-- Card Artwork & Details Snapshot -->
+                        <div class="flex items-center gap-4 mb-4">
+                            <a href="/cards/@listing.Creature.Id" class="w-20 h-20 rounded-xl bg-gradient-to-br @listing.Creature.ArtColorGradient flex items-center justify-center text-4xl shadow-inner flex-shrink-0 group hover:scale-105 transition-transform">
+                                @listing.Creature.EmojiArt
+                            </a>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    <RarityBadge Rarity="@listing.Creature.Rarity" />
+                                    @if (!string.IsNullOrEmpty(listing.Creature.SerialNumber))
+                                    {
+                                        <span class="text-[10px] font-mono text-ink-muted">#@listing.Creature.SerialNumber</span>
+                                    }
+                                </div>
+                                <a href="/cards/@listing.Creature.Id" class="block font-display font-bold text-base text-ink-primary hover:text-purple-muted transition-colors truncate">
+                                    @listing.Creature.Name
+                                </a>
+                                <p class="text-xs text-ink-muted truncate">
+                                    @listing.Creature.CreatureType
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Mutations List -->
+                        @if (listing.Creature.Mutations.Any())
+                        {
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                @foreach (var m in listing.Creature.Mutations)
+                                {
+                                    <MutationBadge Mutation="@m" />
+                                }
+                            </div>
+                        }
+
+                        <!-- Seller Note -->
+                        <p class="text-xs text-ink-muted italic bg-ivory p-2.5 rounded-lg border border-border-subtle mb-4">
+                            "@listing.Notes"
+                        </p>
+                    </div>
+
+                    <!-- Footer: Price & Buy -->
+                    <div class="pt-3 border-t border-border-subtle flex items-center justify-between gap-3">
+                        <PriceDisplay Amount="@listing.AskingPrice" Label="Asking Price" />
+
+                        <div class="flex items-center gap-2">
+                            <a href="/cards/@listing.Creature.Id" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-plum-secondary bg-purple-light hover:bg-purple-soft transition-colors">
+                                View
+                            </a>
+                            <button type="button"
+                                    @onclick="() => BuyListing(listing)"
+                                    class="px-4 py-2 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-xs transition-colors shadow">
+                                Buy Listing
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Modal: List a Card from Vault -->
+@if (_showCreateModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-plum-deep/70 backdrop-blur-sm animate-in fade-in duration-200">
+        <div class="bg-card rounded-2xl border border-border-subtle p-6 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-200">
+            <div class="flex items-center justify-between pb-3 mb-4 border-b border-border-subtle">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🏷️</span>
+                    <h3 class="font-display font-bold text-lg text-ink-primary">
+                        List Card on The Exchange
+                    </h3>
+                </div>
+                <button type="button" @onclick="CloseCreateListingModal" class="text-ink-muted hover:text-ink-primary p-1">
+                    ✕
+                </button>
+            </div>
+
+            @if (CollectionService.GetOwnedCards().Count == 0)
+            {
+                <p class="text-sm text-ink-muted mb-4">
+                    Your vault is currently empty. You need to own cards before you can list them for sale.
+                </p>
+                <div class="flex justify-end">
+                    <button type="button" @onclick="CloseCreateListingModal" class="px-4 py-2 rounded-xl text-xs font-semibold bg-ivory border">Close</button>
+                </div>
+            }
+            else
+            {
+                <div class="space-y-4">
+                    <!-- Select Card -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-1">Select Owned Card</label>
+                        <select @bind="_selectedCreatureId" class="w-full bg-ivory border border-border-subtle rounded-xl px-3 py-2 text-xs font-medium text-ink-primary">
+                            @foreach (var entry in CollectionService.GetOwnedCards())
+                            {
+                                <option value="@entry.Creature.Id">
+                                    @entry.Creature.Name (@entry.Creature.Rarity) — Owned: @entry.Quantity (Valuation: ₱@entry.Creature.GetValuation().ToString("N0"))
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Asking Price Input -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-1">Asking Price (₱)</label>
+                        <input type="number"
+                               min="1"
+                               @bind="_listingPrice"
+                               class="w-full bg-ivory border border-border-subtle rounded-xl px-3 py-2 text-sm font-bold text-ink-primary" />
+                    </div>
+
+                    <!-- Seller Name -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-1">Seller Display Name</label>
+                        <input type="text"
+                               @bind="_sellerName"
+                               class="w-full bg-ivory border border-border-subtle rounded-xl px-3 py-2 text-xs text-ink-primary" />
+                    </div>
+
+                    <!-- Notes -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-1">Listing Note</label>
+                        <textarea @bind="_listingNotes" rows="2" class="w-full bg-ivory border border-border-subtle rounded-xl p-2.5 text-xs text-ink-primary"></textarea>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <div class="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
+                            @_errorMessage
+                        </div>
+                    }
+
+                    <div class="pt-3 border-t border-border-subtle flex justify-end gap-3">
+                        <button type="button" @onclick="CloseCreateListingModal" class="px-4 py-2 rounded-xl text-xs font-medium text-ink-muted hover:bg-ivory">
+                            Cancel
+                        </button>
+                        <button type="button" @onclick="SubmitListing" class="px-5 py-2.5 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-xs shadow">
+                            Post Listing
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private string _searchTerm = string.Empty;
+    private RarityTier? _selectedRarity;
+    private string _selectedSort = "date-newest";
+
+    private bool _showCreateModal = false;
+    private string _selectedCreatureId = string.Empty;
+    private decimal _listingPrice = 150m;
+    private string _sellerName = "You (Vault Owner)";
+    private string _listingNotes = "Freshly minted, mint condition.";
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        MarketService.OnChange += StateHasChanged;
+        CollectionService.OnChange += StateHasChanged;
+
+        var firstOwned = CollectionService.GetOwnedCards().FirstOrDefault();
+        if (firstOwned != null)
+        {
+            _selectedCreatureId = firstOwned.Creature.Id;
+            _listingPrice = firstOwned.Creature.GetValuation();
+        }
+    }
+
+    private List<Listing> DisplayedListings => MarketService.FilterListings(_searchTerm, _selectedRarity, _selectedSort).ToList();
+
+    private void OnSearchChanged(string term) => _searchTerm = term;
+
+    private void OnRarityChanged(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString();
+        _selectedRarity = (!string.IsNullOrEmpty(val) && val != "All" && Enum.TryParse<RarityTier>(val, out var parsed))
+            ? parsed
+            : null;
+    }
+
+    private void OnSortChanged(ChangeEventArgs e) => _selectedSort = e.Value?.ToString() ?? "date-newest";
+
+    private void BuyListing(Listing listing)
+    {
+        var result = MarketService.BuyListing(listing.Id);
+        if (result.Success)
+        {
+            NotificationService.ShowToast(result.Message, "success");
+        }
+        else
+        {
+            NotificationService.ShowToast(result.Message, "error");
+        }
+    }
+
+    private void OpenCreateListingModal()
+    {
+        var owned = CollectionService.GetOwnedCards();
+        if (owned.Any())
+        {
+            _selectedCreatureId = owned.First().Creature.Id;
+            _listingPrice = owned.First().Creature.GetValuation();
+        }
+        _errorMessage = null;
+        _showCreateModal = true;
+    }
+
+    private void CloseCreateListingModal()
+    {
+        _showCreateModal = false;
+        _errorMessage = null;
+    }
+
+    private void SubmitListing()
+    {
+        if (string.IsNullOrEmpty(_selectedCreatureId))
+        {
+            _errorMessage = "Please select a creature card to list.";
+            return;
+        }
+
+        var res = MarketService.CreateListing(_selectedCreatureId, _listingPrice, _sellerName, _listingNotes);
+        if (!res.Success)
+        {
+            _errorMessage = res.Message;
+            return;
+        }
+
+        NotificationService.ShowToast(res.Message, "success");
+        _showCreateModal = false;
+    }
+
+    public void Dispose()
+    {
+        MarketService.OnChange -= StateHasChanged;
+        CollectionService.OnChange -= StateHasChanged;
+    }
+}
+
