@@ -1,0 +1,74 @@
+@if (IsOpen)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-plum-deep/60 backdrop-blur-sm transition-opacity" role="dialog" aria-modal="true">
+        <div class="bg-card rounded-2xl border border-border-subtle p-6 max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-gold-light text-amber-800 flex items-center justify-center text-lg font-bold border border-gold-border/40">
+                    !
+                </div>
+                <div>
+                    <h3 class="font-display font-bold text-lg text-ink-primary">@Title</h3>
+                    <p class="text-xs text-ink-muted">Simulated Action Confirmation</p>
+                </div>
+            </div>
+
+            <p class="text-sm text-ink-primary/90 leading-relaxed mb-6">
+                @Message
+            </p>
+
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-border-subtle">
+                <button type="button"
+                        @onclick="Cancel"
+                        class="px-4 py-2 rounded-xl text-sm font-medium text-ink-muted hover:text-ink-primary hover:bg-ivory transition-colors">
+                    @CancelButtonText
+                </button>
+                <button type="button"
+                        @onclick="Confirm"
+                        class="px-4 py-2 rounded-xl text-sm font-semibold bg-plum-deep text-gold-accent hover:bg-plum-secondary transition-colors shadow-sm">
+                    @ConfirmButtonText
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+
+    [Parameter]
+    public string Title { get; set; } = "Confirm Action";
+
+    [Parameter]
+    public string Message { get; set; } = "Are you sure you want to proceed?";
+
+    [Parameter]
+    public string ConfirmButtonText { get; set; } = "Confirm";
+
+    [Parameter]
+    public string CancelButtonText { get; set; } = "Cancel";
+
+    [Parameter]
+    public EventCallback OnConfirm { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private async Task Confirm()
+    {
+        IsOpen = false;
+        await IsOpenChanged.InvokeAsync(false);
+        await OnConfirm.InvokeAsync();
+    }
+
+    private async Task Cancel()
+    {
+        IsOpen = false;
+        await IsOpenChanged.InvokeAsync(false);
+        await OnCancel.InvokeAsync();
+    }
+}
+

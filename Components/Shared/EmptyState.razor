@@ -1,0 +1,44 @@
+<div class="bg-card rounded-2xl border border-border-subtle p-10 text-center flex flex-col items-center justify-center max-w-md mx-auto my-8">
+    <div class="w-16 h-16 rounded-full bg-purple-light text-3xl flex items-center justify-center mb-4 text-plum-secondary shadow-sm">
+        @Icon
+    </div>
+    <h3 class="font-display font-bold text-xl text-ink-primary mb-2">@Title</h3>
+    <p class="text-sm text-ink-muted leading-relaxed mb-6">@Message</p>
+
+    @if (!string.IsNullOrEmpty(ActionText))
+    {
+        @if (!string.IsNullOrEmpty(ActionUrl))
+        {
+            <a href="@ActionUrl" class="px-5 py-2.5 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-medium text-sm transition-all shadow-sm">
+                @ActionText
+            </a>
+        }
+        else if (OnAction.HasDelegate)
+        {
+            <button type="button" @onclick="OnAction" class="px-5 py-2.5 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-medium text-sm transition-all shadow-sm">
+                @ActionText
+            </button>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Icon { get; set; } = "🔍";
+
+    [Parameter]
+    public string Title { get; set; } = "No items found";
+
+    [Parameter]
+    public string Message { get; set; } = "Try adjusting your search criteria or resetting filters to discover more items.";
+
+    [Parameter]
+    public string? ActionText { get; set; }
+
+    [Parameter]
+    public string? ActionUrl { get; set; }
+
+    [Parameter]
+    public EventCallback OnAction { get; set; }
+}
+

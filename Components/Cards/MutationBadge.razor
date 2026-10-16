@@ -1,0 +1,19 @@
+@using MysteryCrate.Models
+
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border @MutationHelper.GetBadgeClasses(Mutation)">
+    <span>✦</span>
+    <span>@Mutation</span>
+    @if (ShowMultiplier)
+    {
+        <span class="opacity-75 font-mono text-[10px]">(@MutationHelper.GetMultiplier(Mutation)x)</span>
+    }
+</span>
+
+@code {
+    [Parameter]
+    public string Mutation { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool ShowMultiplier { get; set; } = false;
+}
+

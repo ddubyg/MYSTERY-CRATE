@@ -1,0 +1,45 @@
+<div class="inline-flex flex-col @(AlignRight ? "items-end" : "items-start")">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <span class="text-[11px] font-medium uppercase tracking-wider text-ink-muted">@Label</span>
+    }
+    <div class="flex items-baseline gap-1 font-display font-bold @GetSizeClasses()">
+        <span class="text-gold-accent font-sans font-semibold text-[0.8em]">₱</span>
+        <span class="@(IsGold ? "text-amber-900" : "text-ink-primary")">@Amount.ToString("N0")</span>
+    </div>
+    @if (IsShowcase)
+    {
+        <span class="text-[10px] text-amber-700 font-medium tracking-tight bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 mt-0.5">
+            Illustrative collector valuation
+        </span>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public decimal Amount { get; set; }
+
+    [Parameter]
+    public string? Label { get; set; }
+
+    [Parameter]
+    public bool IsShowcase { get; set; } = false;
+
+    [Parameter]
+    public bool IsGold { get; set; } = false;
+
+    [Parameter]
+    public bool AlignRight { get; set; } = false;
+
+    [Parameter]
+    public string Size { get; set; } = "md"; // sm, md, lg, xl
+
+    private string GetSizeClasses() => Size switch
+    {
+        "sm" => "text-sm",
+        "lg" => "text-2xl",
+        "xl" => "text-3xl md:text-4xl",
+        _ => "text-lg"
+    };
+}
+

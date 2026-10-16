@@ -1,0 +1,16 @@
+@inherits LayoutComponentBase
+
+<div class="min-h-screen flex flex-col bg-ivory text-ink-primary font-sans">
+    <SiteHeader />
+
+    <main class="flex-1 flex flex-col w-full">
+        @Body
+    </main>
+
+    <SiteFooter />
+    <NotificationToast />
+</div>
+
+<div id="blazor-error-ui" class="hidden fixed bottom-0 left-0 right-0 p-4 bg-rose-900 text-white text-center z-50">
+    An unhandled error occurred. <a href="" class="underline font-bold ml-2">Reload</a>
+</div>

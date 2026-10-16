@@ -1,0 +1,22 @@
+@using MysteryCrate.Models
+
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide border uppercase @RarityHelper.GetBadgeClasses(Rarity) @CustomClass">
+    @if (Rarity == RarityTier.Legendary)
+    {
+        <span>★</span>
+    }
+    else if (Rarity == RarityTier.Celestial)
+    {
+        <span>✦</span>
+    }
+    @Rarity.ToString()
+</span>
+
+@code {
+    [Parameter]
+    public RarityTier Rarity { get; set; } = RarityTier.Common;
+
+    [Parameter]
+    public string? CustomClass { get; set; }
+}
+

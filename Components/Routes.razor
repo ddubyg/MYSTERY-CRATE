@@ -1,0 +1,17 @@
+<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(Layout.MainLayout)">
+            <div class="max-w-4xl mx-auto px-4 py-16 text-center">
+                <EmptyState Icon="🧭"
+                            Title="Plane Not Discovered (404)"
+                            Message="You have ventured past the known perimeter of the Veilbound archives. The requested route does not exist in this realm."
+                            ActionText="Return to Discover"
+                            ActionUrl="/" />
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>

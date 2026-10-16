@@ -1,0 +1,165 @@
+@using MysteryCrate.Services
+@inject NavigationManager NavigationManager
+@inject CartService CartService
+@inject CollectionService CollectionService
+@implements IDisposable
+
+<header class="sticky top-0 z-40 w-full bg-card/95 backdrop-blur-md border-b border-border-subtle shadow-sm transition-all">
+    <!-- Announcement Ribbon -->
+    <div class="bg-plum-deep text-ivory text-[11px] py-1.5 px-4 text-center font-medium tracking-wide flex items-center justify-center gap-2 border-b border-plum-border">
+        <span class="inline-flex items-center px-1.5 py-0.2 rounded bg-gold-accent text-plum-deep text-[10px] font-bold">NEW</span>
+        <span>Aurex, the Prismatic Scarab (1 of 1) has been unveiled in the Archives!</span>
+        <a href="/cards/aurex-001" class="text-gold-accent hover:underline font-semibold ml-1">View Specimen &rarr;</a>
+    </div>
+
+    <!-- Main Navigation Bar -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16 md:h-20 gap-4">
+            <!-- Brand Mark -->
+            <a href="/" class="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-accent rounded-lg">
+                <div class="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-gradient-to-br from-plum-deep to-plum-secondary flex items-center justify-center text-gold-accent font-bold text-xl border border-gold-accent/40 shadow-sm group-hover:scale-105 transition-transform">
+                    <span>◈</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-display font-black tracking-wider text-lg md:text-xl text-ink-primary group-hover:text-plum-secondary transition-colors leading-none">
+                        MYSTERY CRATE
+                    </span>
+                    <span class="text-[10px] md:text-[11px] font-bold tracking-[0.2em] text-purple-muted uppercase mt-0.5">
+                        VEILBOUND: ORIGINS
+                    </span>
+                </div>
+            </a>
+
+            <!-- Desktop Navigation Links -->
+            <nav class="hidden lg:flex items-center gap-1 xl:gap-2">
+                <NavLink href="" Match="NavLinkMatch.All" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-ink-muted hover:text-ink-primary hover:bg-ivory" ActiveClass="!text-plum-deep !bg-purple-light !font-semibold">
+                    Discover
+                </NavLink>
+                <NavLink href="shop" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-ink-muted hover:text-ink-primary hover:bg-ivory" ActiveClass="!text-plum-deep !bg-purple-light !font-semibold">
+                    Card Shop
+                </NavLink>
+                <NavLink href="packs" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-ink-muted hover:text-ink-primary hover:bg-ivory" ActiveClass="!text-plum-deep !bg-purple-light !font-semibold">
+                    Mystery Packs
+                </NavLink>
+                <NavLink href="vault" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-ink-muted hover:text-ink-primary hover:bg-ivory flex items-center gap-1.5" ActiveClass="!text-plum-deep !bg-purple-light !font-semibold">
+                    <span>My Vault</span>
+                    @if (CollectionService.GetTotalCardCount() > 0)
+                    {
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-purple-muted/20 text-plum-secondary">
+                            @CollectionService.GetTotalCardCount()
+                        </span>
+                    }
+                </NavLink>
+                <NavLink href="exchange" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-ink-muted hover:text-ink-primary hover:bg-ivory" ActiveClass="!text-plum-deep !bg-purple-light !font-semibold">
+                    The Exchange
+                </NavLink>
+                <NavLink href="trades" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-colors text-ink-muted hover:text-ink-primary hover:bg-ivory" ActiveClass="!text-plum-deep !bg-purple-light !font-semibold">
+                    Trade Hub
+                </NavLink>
+            </nav>
+
+            <!-- Actions / Search & Cart -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Search Icon Link -->
+                <a href="/shop" class="p-2 sm:px-3 sm:py-2 rounded-xl text-ink-muted hover:text-ink-primary hover:bg-ivory transition-colors text-xs font-medium flex items-center gap-1.5 border border-transparent hover:border-border-subtle" title="Browse and search cards">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <span class="hidden sm:inline">Search</span>
+                </a>
+
+                <!-- Cart Button -->
+                <a href="/cart" class="relative px-3.5 py-2 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-medium text-xs sm:text-sm transition-all shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    <span class="hidden sm:inline font-semibold">Cart</span>
+                    @if (CartService.TotalCount > 0)
+                    {
+                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-gold-accent text-plum-deep leading-none">
+                            @CartService.TotalCount
+                        </span>
+                    }
+                </a>
+
+                <!-- Mobile Hamburger Toggle -->
+                <button type="button"
+                        @onclick="ToggleMobileMenu"
+                        class="lg:hidden p-2 rounded-xl text-ink-muted hover:text-ink-primary hover:bg-ivory transition-colors"
+                        aria-label="Toggle navigation menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        @if (_isMobileMenuOpen)
+                        {
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        }
+                        else
+                        {
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        }
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown Navigation -->
+        @if (_isMobileMenuOpen)
+        {
+            <div class="lg:hidden py-4 border-t border-border-subtle flex flex-col gap-1 animate-in slide-in-from-top-2 duration-200">
+                <a href="/" @onclick="CloseMobileMenu" class="px-4 py-2.5 rounded-lg text-sm font-medium text-ink-primary hover:bg-ivory">
+                    Discover (Home)
+                </a>
+                <a href="/shop" @onclick="CloseMobileMenu" class="px-4 py-2.5 rounded-lg text-sm font-medium text-ink-primary hover:bg-ivory">
+                    Card Shop
+                </a>
+                <a href="/packs" @onclick="CloseMobileMenu" class="px-4 py-2.5 rounded-lg text-sm font-medium text-ink-primary hover:bg-ivory">
+                    Mystery Packs
+                </a>
+                <a href="/vault" @onclick="CloseMobileMenu" class="px-4 py-2.5 rounded-lg text-sm font-medium text-ink-primary hover:bg-ivory flex items-center justify-between">
+                    <span>My Vault</span>
+                    <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-light text-plum-secondary">
+                        @CollectionService.GetTotalCardCount()
+                    </span>
+                </a>
+                <a href="/exchange" @onclick="CloseMobileMenu" class="px-4 py-2.5 rounded-lg text-sm font-medium text-ink-primary hover:bg-ivory">
+                    The Exchange
+                </a>
+                <a href="/trades" @onclick="CloseMobileMenu" class="px-4 py-2.5 rounded-lg text-sm font-medium text-ink-primary hover:bg-ivory">
+                    Trade Hub
+                </a>
+                <a href="/cart" @onclick="CloseMobileMenu" class="px-4 py-2.5 rounded-lg text-sm font-medium text-ink-primary hover:bg-ivory flex items-center justify-between">
+                    <span>Cart & Checkout</span>
+                    <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-gold-accent text-plum-deep">
+                        @CartService.TotalCount
+                    </span>
+                </a>
+            </div>
+        }
+    </div>
+</header>
+
+@code {
+    private bool _isMobileMenuOpen = false;
+
+    protected override void OnInitialized()
+    {
+        CartService.OnChange += StateHasChanged;
+        CollectionService.OnChange += StateHasChanged;
+    }
+
+    private void ToggleMobileMenu()
+    {
+        _isMobileMenuOpen = !_isMobileMenuOpen;
+    }
+
+    private void CloseMobileMenu()
+    {
+        _isMobileMenuOpen = false;
+    }
+
+    public void Dispose()
+    {
+        CartService.OnChange -= StateHasChanged;
+        CollectionService.OnChange -= StateHasChanged;
+    }
+}
+

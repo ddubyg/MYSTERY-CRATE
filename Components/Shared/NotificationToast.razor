@@ -1,0 +1,36 @@
+@using MysteryCrate.Services
+@inject NotificationService NotificationService
+@implements IDisposable
+
+<div class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full">
+    @foreach (var toast in NotificationService.Toasts)
+    {
+        <div class="pointer-events-auto bg-plum-deep text-white p-4 rounded-xl shadow-2xl border border-gold-accent/30 flex items-center justify-between gap-3 animate-in slide-in-from-bottom-5 duration-300">
+            <div class="flex items-center gap-2.5">
+                <span class="text-gold-accent text-lg">✦</span>
+                <span class="text-sm font-medium text-ivory leading-snug">@toast.Message</span>
+            </div>
+            <button type="button"
+                    @onclick="() => NotificationService.DismissToast(toast.Id)"
+                    class="text-white/60 hover:text-white transition-colors p-1"
+                    title="Dismiss">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        NotificationService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        NotificationService.OnChange -= StateHasChanged;
+    }
+}
+

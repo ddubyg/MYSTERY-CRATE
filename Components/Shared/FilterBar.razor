@@ -1,0 +1,140 @@
+@using MysteryCrate.Models
+
+<div class="bg-card p-4 rounded-xl border border-border-subtle shadow-sm flex flex-wrap items-center justify-between gap-3">
+    <!-- Filters Group -->
+    <div class="flex flex-wrap items-center gap-3">
+        <!-- Rarity Select -->
+        <div class="flex items-center gap-1.5 text-xs">
+            <label class="font-medium text-ink-muted">Rarity:</label>
+            <select value="@(SelectedRarity?.ToString() ?? "All")"
+                    @onchange="OnRarityChanged"
+                    class="bg-ivory border border-border-subtle rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-primary focus:outline-none focus:ring-1 focus:ring-purple-muted">
+                <option value="All">All Rarities</option>
+                @foreach (RarityTier tier in Enum.GetValues<RarityTier>())
+                {
+                    <option value="@tier.ToString()">@tier.ToString()</option>
+                }
+            </select>
+        </div>
+
+        @if (ShowMutationFilter)
+        {
+            <!-- Mutation Select -->
+            <div class="flex items-center gap-1.5 text-xs">
+                <label class="font-medium text-ink-muted">Mutation:</label>
+                <select value="@(SelectedMutation ?? "All")"
+                        @onchange="OnMutationChanged"
+                        class="bg-ivory border border-border-subtle rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-primary focus:outline-none focus:ring-1 focus:ring-purple-muted">
+                    <option value="All">All Mutations</option>
+                    @foreach (var m in MutationHelper.AllMutations)
+                    {
+                        <option value="@m">@m</option>
+                    }
+                </select>
+            </div>
+        }
+
+        <!-- Sort Select -->
+        <div class="flex items-center gap-1.5 text-xs">
+            <label class="font-medium text-ink-muted">Sort By:</label>
+            <select value="@SelectedSort"
+                    @onchange="OnSortChanged"
+                    class="bg-ivory border border-border-subtle rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-primary focus:outline-none focus:ring-1 focus:ring-purple-muted">
+                <option value="rarity-desc">Highest Rarity First</option>
+                <option value="rarity-asc">Lowest Rarity First</option>
+                <option value="price-desc">Valuation: High to Low</option>
+                <option value="price-asc">Valuation: Low to High</option>
+                <option value="name-asc">Name: A to Z</option>
+                <option value="name-desc">Name: Z to A</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Active Filters & Reset -->
+    <div class="flex items-center gap-2">
+        @if (HasActiveFilters)
+        {
+            <button type="button"
+                    @onclick="ResetFilters"
+                    class="px-2.5 py-1.5 text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg border border-rose-200 transition-colors flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Reset Filters
+            </button>
+        }
+        <span class="text-xs text-ink-muted font-medium">
+            Showing @ItemCount items
+        </span>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public RarityTier? SelectedRarity { get; set; }
+
+    [Parameter]
+    public EventCallback<RarityTier?> SelectedRarityChanged { get; set; }
+
+    [Parameter]
+    public string? SelectedMutation { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> SelectedMutationChanged { get; set; }
+
+    [Parameter]
+    public string SelectedSort { get; set; } = "rarity-desc";
+
+    [Parameter]
+    public EventCallback<string> SelectedSortChanged { get; set; }
+
+    [Parameter]
+    public bool ShowMutationFilter { get; set; } = true;
+
+    [Parameter]
+    public int ItemCount { get; set; }
+
+    [Parameter]
+    public EventCallback OnReset { get; set; }
+
+    private bool HasActiveFilters => SelectedRarity.HasValue || (!string.IsNullOrEmpty(SelectedMutation) && SelectedMutation != "All");
+
+    private async Task OnRarityChanged(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString();
+        if (string.IsNullOrEmpty(val) || val == "All")
+        {
+            SelectedRarity = null;
+        }
+        else if (Enum.TryParse<RarityTier>(val, out var parsed))
+        {
+            SelectedRarity = parsed;
+        }
+        await SelectedRarityChanged.InvokeAsync(SelectedRarity);
+    }
+
+    private async Task OnMutationChanged(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString();
+        SelectedMutation = val == "All" ? null : val;
+        await SelectedMutationChanged.InvokeAsync(SelectedMutation);
+    }
+
+    private async Task OnSortChanged(ChangeEventArgs e)
+    {
+        SelectedSort = e.Value?.ToString() ?? "rarity-desc";
+        await SelectedSortChanged.InvokeAsync(SelectedSort);
+    }
+
+    private async Task ResetFilters()
+    {
+        SelectedRarity = null;
+        SelectedMutation = null;
+        SelectedSort = "rarity-desc";
+        await SelectedRarityChanged.InvokeAsync(null);
+        await SelectedMutationChanged.InvokeAsync(null);
+        await SelectedSortChanged.InvokeAsync(SelectedSort);
+        await OnReset.InvokeAsync();
+    }
+}
+
