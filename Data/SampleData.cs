@@ -244,8 +244,20 @@ public static class SampleData
                 BadgeText = "Beginner Tier",
                 BadgeColor = "bg-emerald-100 text-emerald-900 border-emerald-300",
                 BoxGradient = "from-emerald-950 via-teal-900 to-stone-900",
-                OddsDescription = "Guaranteed Common or better • 25% Uncommon chance",
+                OddsDescription = "5 Cards • 78% Common • 18% Uncommon • 3.8% Rare • 0.2% Epic",
                 MinGuaranteedRarity = RarityTier.Common,
+                CardCount = 5,
+                DropTable = new CrateDropTable
+                {
+                    Weights = new Dictionary<RarityTier, double>
+                    {
+                        { RarityTier.Common, 78.0 },
+                        { RarityTier.Uncommon, 18.0 },
+                        { RarityTier.Rare, 3.8 },
+                        { RarityTier.Epic, 0.2 }
+                    },
+                    MutationChance = 0.20
+                },
                 CreaturePoolIds = new List<string> { "gloomspore-002", "tidepool-003", "dune-serpent-014", "cinder-fox-004", "zephyr-005" }
             },
             new MysteryPack
@@ -259,8 +271,21 @@ public static class SampleData
                 BadgeText = "Popular Pick",
                 BadgeColor = "bg-sky-100 text-sky-900 border-sky-300",
                 BoxGradient = "from-indigo-950 via-purple-900 to-slate-900",
-                OddsDescription = "Guaranteed Uncommon or better • 35% Rare • 10% Epic chance",
+                OddsDescription = "5 Cards • 65% Common • 24% Uncommon • 8% Rare • 2.8% Epic • 0.2% Mythic",
                 MinGuaranteedRarity = RarityTier.Uncommon,
+                CardCount = 5,
+                DropTable = new CrateDropTable
+                {
+                    Weights = new Dictionary<RarityTier, double>
+                    {
+                        { RarityTier.Common, 65.0 },
+                        { RarityTier.Uncommon, 24.0 },
+                        { RarityTier.Rare, 8.0 },
+                        { RarityTier.Epic, 2.8 },
+                        { RarityTier.Mythic, 0.2 }
+                    },
+                    MutationChance = 0.28
+                },
                 CreaturePoolIds = new List<string> { "cinder-fox-004", "zephyr-005", "obsidian-006", "abyssal-007", "frost-behemoth-015", "moonlit-008" }
             },
             new MysteryPack
@@ -274,8 +299,22 @@ public static class SampleData
                 BadgeText = "High Tier",
                 BadgeColor = "bg-rose-100 text-rose-900 border-rose-300",
                 BoxGradient = "from-purple-950 via-rose-950 to-indigo-950",
-                OddsDescription = "Guaranteed Rare or better • 40% Epic • 20% Mythic • 5% Legendary chance",
+                OddsDescription = "5 Cards • 52% Common • 28% Uncommon • 12% Rare • 5.5% Epic • 2% Mythic • 0.5% Legendary",
                 MinGuaranteedRarity = RarityTier.Rare,
+                CardCount = 5,
+                DropTable = new CrateDropTable
+                {
+                    Weights = new Dictionary<RarityTier, double>
+                    {
+                        { RarityTier.Common, 52.0 },
+                        { RarityTier.Uncommon, 28.0 },
+                        { RarityTier.Rare, 12.0 },
+                        { RarityTier.Epic, 5.5 },
+                        { RarityTier.Mythic, 2.0 },
+                        { RarityTier.Legendary, 0.5 }
+                    },
+                    MutationChance = 0.35
+                },
                 CreaturePoolIds = new List<string> { "obsidian-006", "abyssal-007", "moonlit-008", "storm-009", "void-010", "solar-011", "chrono-012" }
             },
             new MysteryPack
@@ -284,13 +323,28 @@ public static class SampleData
                 Name = "Celestial Veil Vault",
                 Subtitle = "The Sovereign Emperor's Cache",
                 Price = 10000m,
-                Description = "The apex mystery container of the Veilbound realm. Bound by celestial warding sigils, housing titanic artifacts and cosmic divinities.",
+                Description = "The apex ₱10,000 mystery container of the Veilbound realm. Bound by celestial warding sigils, housing titanic artifacts, cosmic divinities, and high-value mutations.",
                 IconEmoji = "👑",
                 BadgeText = "Prestige Tier",
                 BadgeColor = "bg-amber-100 text-amber-950 border-amber-400 font-bold",
                 BoxGradient = "from-amber-950 via-violet-950 to-purple-950",
-                OddsDescription = "Guaranteed Epic or better • 50% Mythic • 30% Legendary • 10% Celestial chance",
+                OddsDescription = "5 Cards • 45% Common • 25% Uncommon • 16% Rare • 8% Epic • 4% Mythic • 1.7% Legendary • 0.3% Celestial",
                 MinGuaranteedRarity = RarityTier.Epic,
+                CardCount = 5,
+                DropTable = new CrateDropTable
+                {
+                    Weights = new Dictionary<RarityTier, double>
+                    {
+                        { RarityTier.Common, 45.0 },
+                        { RarityTier.Uncommon, 25.0 },
+                        { RarityTier.Rare, 16.0 },
+                        { RarityTier.Epic, 8.0 },
+                        { RarityTier.Mythic, 4.0 },
+                        { RarityTier.Legendary, 1.7 },
+                        { RarityTier.Celestial, 0.3 }
+                    },
+                    MutationChance = 0.45
+                },
                 CreaturePoolIds = new List<string> { "moonlit-008", "storm-009", "void-010", "solar-011", "chrono-012", "aethelgard-013" }
             }
         };

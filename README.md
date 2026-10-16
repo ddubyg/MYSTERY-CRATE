@@ -47,7 +47,7 @@ The application implements a warm ivory and deep plum aesthetic with gold and pu
 |---|---|---|---|
 | **1. Discover / Home** | `/` | `Components/Pages/Home.razor` | Hero section featuring **Aurex** with Golden + Rainbow badges and ₱5,000,000 showcase valuation; rarity hierarchy; curated creatures grid; mutation multipliers section. |
 | **2. Card Shop** | `/shop` | `Components/Pages/Shop.razor` | Catalog browsing with live text search, rarity filters, mutation filters, valuation/name sorting, and empty state handling. |
-| **3. Mystery Packs** | `/packs` | `Components/Pages/Packs.razor` | Tiered mystery packs (Novice, Arcane, Astral, Celestial), unboxing odds explanations, confirmation modal, and animated card reveal modal. |
+| **3. Mystery Packs** | `/packs` | `Components/Pages/Packs.razor` | Suspenseful 5-card crate opening theater (including ₱10,000 Celestial Vault), 3D flip reveals, running value tracker, profit/loss outcome summary (Loss, Break Even, Profit, Jackpot), transparent odds modal, and opening history log. |
 | **4. My Vault** | `/vault` | `Components/Pages/Vault.razor` | Personal collection summary, total cards, cumulative portfolio valuation, rarity distribution breakdown, search, and owned inventory grid. |
 | **5. Card Details** | `/cards/{id}` | `Components/Pages/CardDetails.razor` | Large holographic card showcase, specimen lore, native habitat, serial number, valuation formula breakdown, and cart action. |
 | **6. The Exchange** | `/exchange` | `Components/Pages/Exchange.razor` | Secondary marketplace with active fictional listings, instant simulated buying, and a modal to list cards from the personal vault. |
@@ -95,10 +95,11 @@ midterm/
 │   └── SampleData.cs                     # Centralized seed data: creatures, packs, listings, traders
 ├── Models/
 │   ├── CartItem.cs                       # Cart items and types
+│   ├── CrateOpening.cs                   # Drop tables, 5-card opening results, and history models
 │   ├── Creature.cs                       # Card entity and deterministic valuation method
 │   ├── Listing.cs                        # Marketplace listing model
 │   ├── Mutation.cs                       # Mutation trait definitions and multipliers
-│   ├── MysteryPack.cs                    # Pack definition and drop pools
+│   ├── MysteryPack.cs                    # Pack definition, card counts, and drop pools
 │   ├── Order.cs                          # Simulated order model
 │   ├── Rarity.cs                         # Rarity tiers and base prices
 │   └── TradeOffer.cs                     # Trade partners, proposals, and history records

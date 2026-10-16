@@ -65,3 +65,78 @@ h1, h2, h3, .font-display {
   box-shadow: 0 0 35px rgba(231, 196, 107, 0.35), 0 0 70px rgba(167, 139, 250, 0.25);
 }
 
+/* 3D Card Flip styles */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Crate Shaking & Opening Animations */
+@keyframes crateShake {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  20% { transform: rotate(-3deg) scale(1.03); }
+  40% { transform: rotate(3deg) scale(1.05); }
+  60% { transform: rotate(-3deg) scale(1.05); }
+  80% { transform: rotate(3deg) scale(1.03); }
+}
+
+.animate-crate-shake {
+  animation: crateShake 0.5s ease-in-out infinite;
+}
+
+/* Rarity Reveal Aura Effects */
+.glow-common {
+  box-shadow: 0 4px 15px rgba(120, 113, 108, 0.2);
+}
+
+.glow-uncommon {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+}
+
+.glow-rare {
+  box-shadow: 0 0 25px rgba(14, 165, 233, 0.45);
+}
+
+.glow-epic {
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
+}
+
+.glow-mythic {
+  box-shadow: 0 0 35px rgba(244, 63, 94, 0.55);
+}
+
+.glow-legendary {
+  box-shadow: 0 0 40px rgba(231, 196, 107, 0.7), 0 0 80px rgba(231, 196, 107, 0.3);
+}
+
+.glow-celestial {
+  box-shadow: 0 0 45px rgba(167, 139, 250, 0.8), 0 0 90px rgba(231, 196, 107, 0.5);
+  animation: pulseCelestial 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulseCelestial {
+  from { filter: drop-shadow(0 0 15px rgba(167, 139, 250, 0.6)); }
+  to { filter: drop-shadow(0 0 30px rgba(231, 196, 107, 0.8)); }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-crate-shake,
+  .glow-celestial,
+  .animate-float-gentle,
+  .animate-foil-sweep {
+    animation: none !important;
+  }
+}

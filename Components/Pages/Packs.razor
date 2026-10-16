@@ -5,44 +5,147 @@
 @inject CartService CartService
 @inject NotificationService NotificationService
 @inject CollectionService CollectionService
+@implements IDisposable
 
-<PageTitle>Mystery Packs — Veilbound: Origins | Mystery Crate</PageTitle>
+<PageTitle>Mystery Packs & Crate Opening — Veilbound: Origins | Mystery Crate</PageTitle>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
     <!-- Page Header -->
-    <div class="text-center max-w-2xl mx-auto mb-12">
+    <div class="text-center max-w-2xl mx-auto mb-10">
         <div class="inline-flex items-center gap-1.5 text-xs font-bold tracking-[0.2em] text-purple-muted uppercase mb-1">
             <span>📦</span>
-            <span>Simulated Unboxing Chamber</span>
+            <span>Thrilling Crate Opening Chamber</span>
         </div>
         <h1 class="font-display font-bold text-3xl sm:text-4xl text-ink-primary">
             Mystery Pack Vaults
         </h1>
-        <p class="text-sm text-ink-muted mt-3 leading-relaxed">
-            Unseal sealed arcane containers to pull guaranteed rarities and random mutations. All pack openings run as instant local simulations that automatically deposit revealed cards into your personal Vault.
+        <p class="text-sm text-ink-muted mt-2 leading-relaxed">
+            Every crate unseals a minimum of <strong>five mystical cards</strong>. Watch cards flip in suspense, track your live portfolio valuation, and see whether your unboxing yields a Profit, Break Even, or Legendary Jackpot!
         </p>
-        <div class="mt-3 inline-block px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs text-amber-800 font-medium">
-            ✦ Academic Simulation: No real currency is charged. Pack odds are predefined and transparent.
+        <div class="mt-3 inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs text-amber-900 font-medium shadow-sm">
+            <span>✦</span>
+            <span>Academic Demonstration: Fictional currency simulation with transparent drop probabilities.</span>
         </div>
     </div>
 
-    <!-- Packs Grid -->
+    <!-- Featured ₱10,000 Celestial Crate Banner -->
+    @{
+        var celestialPack = PackService.GetPackById("pack-celestial");
+    }
+    @if (celestialPack != null)
+    {
+        <div class="mb-12 rounded-3xl bg-gradient-to-r from-plum-deep via-plum-secondary to-plum-deep text-ivory p-6 sm:p-8 border-2 border-gold-accent/50 shadow-2xl relative overflow-hidden group">
+            <div class="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-gold-accent/15 blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-purple-muted/20 blur-3xl pointer-events-none"></div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+                <!-- Crate Visual -->
+                <div class="lg:col-span-4 flex justify-center">
+                    <div class="relative w-48 h-48 sm:w-56 sm:h-56 rounded-2xl bg-gradient-to-br from-amber-950 via-purple-950 to-plum-surface border-2 border-gold-accent flex flex-col items-center justify-center text-center p-6 shadow-2xl scarab-glow group-hover:scale-105 transition-transform duration-300">
+                        <div class="absolute inset-0 prismatic-foil opacity-30 pointer-events-none"></div>
+                        <span class="text-7xl sm:text-8xl select-none drop-shadow-[0_10px_20px_rgba(231,196,107,0.4)] animate-float-gentle">
+                            @celestialPack.IconEmoji
+                        </span>
+                        <div class="absolute bottom-2.5 px-3 py-0.5 rounded-full text-[10px] font-extrabold bg-gold-accent text-plum-deep tracking-wider uppercase shadow">
+                            5 Cards Included
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Crate Copy & Details -->
+                <div class="lg:col-span-5 space-y-3">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400 text-plum-deep">
+                            ★ PRESTIGE CRATE
+                        </span>
+                        <span class="text-xs text-gold-accent font-semibold tracking-wider">
+                            HIGH-STAKES UNBOXING
+                        </span>
+                    </div>
+
+                    <h2 class="font-display font-black text-2xl sm:text-3xl text-ivory">
+                        @celestialPack.Name
+                    </h2>
+                    <p class="text-xs sm:text-sm text-purple-light/80 leading-relaxed">
+                        @celestialPack.Description
+                    </p>
+
+                    <div class="p-3 rounded-xl bg-plum-surface/80 border border-plum-border text-xs text-purple-light/90 space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-purple-light/70">Guaranteed Minimum:</span>
+                            <span class="font-bold text-gold-accent">5 Cards per Crate (Epic+ Guaranteed)</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-purple-light/70">Top Rarity Odds:</span>
+                            <span class="font-bold text-ivory">1.7% Legendary • 0.3% Celestial Titan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action & Price -->
+                <div class="lg:col-span-3 flex flex-col items-center lg:items-end justify-center space-y-4">
+                    <div class="text-center lg:text-right">
+                        <span class="text-[11px] uppercase tracking-wider text-purple-light/70 font-semibold block">Crate Price</span>
+                        <div class="font-display font-black text-3xl sm:text-4xl text-gold-accent flex items-baseline justify-center lg:justify-end gap-1">
+                            <span class="text-lg font-sans">₱</span>
+                            <span>@celestialPack.Price.ToString("N0")</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row lg:flex-col gap-2 w-full max-w-xs">
+                        <button type="button"
+                                @onclick="() => StartCrateOpening(celestialPack)"
+                                class="w-full py-3 px-5 rounded-xl bg-gold-accent text-plum-deep hover:bg-gold-hover font-bold text-sm tracking-wide transition-all shadow-lg hover:shadow-gold-accent/20 flex items-center justify-center gap-2">
+                            <span>Open 5-Card Crate</span>
+                            <span>⚡</span>
+                        </button>
+
+                        <div class="flex gap-2">
+                            <button type="button"
+                                    @onclick="() => OpenOddsModal(celestialPack)"
+                                    class="flex-1 py-2 px-3 rounded-xl bg-plum-surface hover:bg-plum-border text-ivory border border-plum-border text-xs font-semibold transition-colors text-center">
+                                View Drop Odds
+                            </button>
+                            <button type="button"
+                                    @onclick="() => AddPackToCart(celestialPack)"
+                                    class="py-2 px-3 rounded-xl bg-plum-surface hover:bg-plum-border text-gold-accent border border-plum-border text-xs font-bold transition-colors"
+                                    title="Add crate to shopping cart">
+                                + Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Other Available Crates Catalog -->
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <span class="text-xs font-bold tracking-[0.2em] text-purple-muted uppercase">Collection Tiers</span>
+            <h3 class="font-display font-bold text-2xl text-ink-primary">
+                All Mystery Crate Tiers
+            </h3>
+        </div>
+        <span class="text-xs text-ink-muted">All crates contain 5 cards</span>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
         @foreach (var pack in PackService.GetPacks())
         {
-            <div class="bg-card rounded-2xl border border-border-subtle p-6 flex flex-col justify-between shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all">
+            <div class="bg-card rounded-2xl border border-border-subtle p-6 flex flex-col justify-between shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all @(pack.Id == "pack-celestial" ? "ring-2 ring-gold-accent/40" : "")">
                 <div>
-                    <!-- Pack Badge -->
+                    <!-- Badge & Count -->
                     <div class="flex items-center justify-between mb-4">
                         <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border @pack.BadgeColor">
                             @pack.BadgeText
                         </span>
-                        <span class="text-xs text-ink-muted font-medium">
-                            Min: @pack.MinGuaranteedRarity+
+                        <span class="text-[11px] text-purple-muted font-bold">
+                            @pack.CardCount Cards
                         </span>
                     </div>
 
-                    <!-- 3D Crate Visual Box -->
+                    <!-- 3D Crate Box Visual -->
                     <div class="aspect-square w-full rounded-xl bg-gradient-to-br @pack.BoxGradient p-6 flex flex-col items-center justify-center text-center text-white mb-5 shadow-inner relative overflow-hidden group">
                         <div class="absolute inset-0 prismatic-foil opacity-20 pointer-events-none"></div>
                         <div class="text-6xl transform group-hover:scale-110 transition-transform duration-300 drop-shadow-md">
@@ -53,25 +156,31 @@
                         </span>
                     </div>
 
-                    <!-- Title & Description -->
-                    <h3 class="font-display font-bold text-xl text-ink-primary">
+                    <h4 class="font-display font-bold text-xl text-ink-primary">
                         @pack.Name
-                    </h3>
+                    </h4>
                     <p class="text-xs text-ink-muted leading-relaxed mt-2 mb-4">
                         @pack.Description
                     </p>
 
                     <!-- Odds Strip -->
-                    <div class="p-2.5 rounded-lg bg-ivory border border-border-subtle text-[11px] text-ink-primary/80 mb-5 flex items-start gap-1.5">
-                        <span class="text-purple-muted font-bold">ℹ</span>
-                        <span>@pack.OddsDescription</span>
+                    <div class="p-2.5 rounded-lg bg-ivory border border-border-subtle text-[11px] text-ink-primary/80 mb-5 flex items-start justify-between gap-1.5">
+                        <div class="flex items-start gap-1">
+                            <span class="text-purple-muted font-bold">ℹ</span>
+                            <span>@pack.OddsDescription</span>
+                        </div>
+                        <button type="button"
+                                @onclick="() => OpenOddsModal(pack)"
+                                class="text-[10px] text-purple-muted hover:text-plum-deep underline font-bold flex-shrink-0">
+                            Odds Table
+                        </button>
                     </div>
                 </div>
 
                 <!-- Footer: Price & Open Action -->
                 <div class="pt-4 border-t border-border-subtle flex flex-col gap-2">
                     <div class="flex items-center justify-between">
-                        <PriceDisplay Amount="@pack.Price" Label="Pack Price" />
+                        <PriceDisplay Amount="@pack.Price" Label="Crate Cost" />
                         <button type="button"
                                 @onclick="() => AddPackToCart(pack)"
                                 class="px-3 py-1.5 rounded-lg text-xs font-semibold text-plum-secondary bg-purple-light hover:bg-purple-soft transition-colors"
@@ -81,9 +190,9 @@
                     </div>
 
                     <button type="button"
-                            @onclick="() => ConfirmOpenPack(pack)"
-                            class="w-full py-2.5 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-sm tracking-wide transition-all shadow flex items-center justify-center gap-2">
-                        <span>Open Pack Now</span>
+                            @onclick="() => StartCrateOpening(pack)"
+                            class="w-full py-2.5 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-xs sm:text-sm tracking-wide transition-all shadow flex items-center justify-center gap-2">
+                        <span>Open 5 Cards</span>
                         <span>⚡</span>
                     </button>
                 </div>
@@ -91,88 +200,418 @@
         }
     </div>
 
-    <!-- How Pack Opening Simulation Works -->
-    <div class="bg-card rounded-2xl border border-border-subtle p-8 max-w-4xl mx-auto shadow-sm">
-        <h3 class="font-display font-bold text-xl text-ink-primary mb-3">
-            How Mystery Pack Simulations Work
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-ink-muted">
-            <div class="space-y-1.5">
-                <div class="font-bold text-ink-primary flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full bg-purple-light text-plum-deep flex items-center justify-center text-xs">1</span>
-                    Weighted Distribution
+    <!-- Opening History Section -->
+    <div class="bg-card rounded-2xl border border-border-subtle p-6 sm:p-8 shadow-sm mb-12">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-border-subtle">
+            <div class="flex items-center gap-2.5">
+                <span class="text-2xl">📜</span>
+                <div>
+                    <h3 class="font-display font-bold text-xl text-ink-primary">
+                        Crate Opening History
+                    </h3>
+                    <p class="text-xs text-ink-muted">
+                        Session record of multi-card unboxings, illustrative valuations, and profit/loss results.
+                    </p>
                 </div>
-                <p class="text-xs leading-relaxed">
-                    Card drops are calculated using weighted probability tables tied to the pack's minimum guaranteed rarity.
-                </p>
             </div>
-            <div class="space-y-1.5">
-                <div class="font-bold text-ink-primary flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full bg-purple-light text-plum-deep flex items-center justify-center text-xs">2</span>
-                    Instant Vault Sync
-                </div>
-                <p class="text-xs leading-relaxed">
-                    Any card revealed is instantly synchronized into your in-memory Vault collection, updating your total collection counts.
-                </p>
-            </div>
-            <div class="space-y-1.5">
-                <div class="font-bold text-ink-primary flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full bg-purple-light text-plum-deep flex items-center justify-center text-xs">3</span>
-                    Safe & Educational
-                </div>
-                <p class="text-xs leading-relaxed">
-                    Built to demonstrate state management, reactive event notifications, and modal unboxing UI in modern Blazor.
-                </p>
-            </div>
+            <span class="text-xs font-bold text-purple-muted">
+                @PackService.History.Count Opening(s) Logged
+            </span>
         </div>
+
+        @if (PackService.History.Count == 0)
+        {
+            <div class="text-center py-8 text-xs text-ink-muted italic">
+                No crates opened during this session yet. Unseal a 5-card crate above to test your fortune!
+            </div>
+        }
+        else
+        {
+            <div class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                @foreach (var entry in PackService.History)
+                {
+                    <div class="p-4 rounded-xl border border-border-subtle bg-ivory flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center gap-3">
+                            <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider @GetOutcomeBadgeClass(entry.Outcome)">
+                                @entry.Outcome.ToString()
+                            </span>
+                            <div>
+                                <span class="font-bold text-ink-primary text-sm">@entry.PackName</span>
+                                <div class="text-ink-muted text-[11px] flex items-center gap-2 mt-0.5">
+                                    <span>Cost: ₱@entry.CrateCost.ToString("N0")</span>
+                                    <span>•</span>
+                                    <span>@entry.CardCount Cards Unboxed</span>
+                                    <span>•</span>
+                                    <span>@entry.Timestamp.ToLocalTime().ToString("MMM dd, h:mm tt")</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Thumbnails -->
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            @foreach (var card in entry.Cards)
+                            {
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-card border border-border-subtle text-[11px]" title="@card.Creature.Name (@card.Creature.Rarity) - ₱@card.Valuation.ToString("N0")">
+                                    <span>@card.Creature.EmojiArt</span>
+                                    <span class="font-medium truncate max-w-[80px]">@card.Creature.Name</span>
+                                </span>
+                            }
+                        </div>
+
+                        <!-- Valuation Result -->
+                        <div class="text-right flex-shrink-0">
+                            <div class="font-bold text-ink-primary">
+                                Value: ₱@entry.TotalValue.ToString("N0")
+                            </div>
+                            <div class="text-[11px] font-bold @(entry.NetDifference >= 0 ? "text-emerald-700" : "text-rose-700")">
+                                @(entry.NetDifference >= 0 ? "+" : "")₱@entry.NetDifference.ToString("N0")
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
     </div>
 </div>
 
-<!-- Confirmation Dialog before Opening -->
-<ConfirmationDialog IsOpen="@_showConfirmation"
-                    IsOpenChanged="OnConfirmClosed"
-                    Title="@($"Open {_selectedPack?.Name}?")"
-                    Message="@($"Are you ready to break the seal on the {_selectedPack?.Name}? A creature will be rolled from the pack's probability pool and transferred to your personal Vault.")"
-                    ConfirmButtonText="Unseal Pack"
-                    CancelButtonText="Cancel"
-                    OnConfirm="ExecutePackOpening" />
-
-<!-- Pack Unboxing Reveal Modal -->
-@if (_revealedCreature != null)
+<!-- ======================================================== -->
+<!-- THRILLING CRATE OPENING THEATER MODAL                    -->
+<!-- ======================================================== -->
+@if (_activeOpeningResult != null)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-plum-deep/80 backdrop-blur-md animate-in fade-in duration-300">
-        <div class="bg-card rounded-2xl border-2 border-gold-accent p-6 sm:p-8 max-w-md w-full shadow-2xl text-center flex flex-col items-center animate-in zoom-in-95 duration-300 relative overflow-hidden">
-            <!-- Confetti / Glow backdrop -->
-            <div class="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-gold-accent/20 blur-2xl pointer-events-none"></div>
-            <div class="absolute -bottom-24 -right-24 w-48 h-48 rounded-full bg-purple-muted/30 blur-2xl pointer-events-none"></div>
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-plum-deep/85 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto">
+        <div class="relative bg-card rounded-3xl border-2 border-gold-accent max-w-4xl w-full p-5 sm:p-8 shadow-2xl flex flex-col my-auto overflow-hidden">
+            <!-- Background Glows -->
+            <div class="absolute -top-32 -left-32 w-64 h-64 rounded-full bg-gold-accent/20 blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-32 -right-32 w-64 h-64 rounded-full bg-purple-muted/30 blur-3xl pointer-events-none"></div>
 
-            <div class="inline-flex items-center gap-1 text-xs font-bold text-gold-accent tracking-widest uppercase mb-1">
-                <span>✦</span>
-                <span>PACK UNSEALED</span>
-                <span>✦</span>
+            <!-- Top Header & Live Value Tracker -->
+            <div class="relative z-10 pb-4 mb-4 border-b border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold uppercase tracking-widest text-gold-accent">
+                            ◈ Unsealing: @_activeOpeningResult.PackName
+                        </span>
+                        <span class="px-2 py-0.2 rounded text-[10px] font-extrabold bg-ivory border border-border-subtle text-ink-muted">
+                            Cost: ₱@_activeOpeningResult.CrateCost.ToString("N0")
+                        </span>
+                    </div>
+                    <h3 class="font-display font-black text-2xl text-ink-primary mt-0.5">
+                        @(_isComplete ? "Crate Opening Complete!" : (_isOpeningAnimation ? "Breaking Arcane Seal..." : "Progressive Card Reveal"))
+                    </h3>
+                </div>
+
+                <!-- Live Running Value Tracker -->
+                <div class="bg-ivory rounded-2xl border border-border-subtle p-3.5 flex items-center gap-4 text-xs">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-ink-muted block">Revealed Progress</span>
+                        <div class="font-bold text-ink-primary text-sm">
+                            @_revealedCardCount / @_activeOpeningResult.Cards.Count Cards
+                        </div>
+                    </div>
+
+                    <div class="w-px h-8 bg-border-subtle"></div>
+
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-ink-muted block">Running Total</span>
+                        <div class="font-display font-black text-sm sm:text-base text-amber-950">
+                            ₱@CurrentRunningTotal.ToString("N0")
+                        </div>
+                    </div>
+
+                    <div class="w-px h-8 bg-border-subtle"></div>
+
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-ink-muted block">
+                            @(_isComplete ? "Final Net" : "Provisional Net")
+                        </span>
+                        <div class="font-bold text-sm @(CurrentProvisionalDifference >= 0 ? "text-emerald-700" : "text-rose-700")">
+                            @(CurrentProvisionalDifference >= 0 ? "+" : "")₱@CurrentProvisionalDifference.ToString("N0")
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <h3 class="font-display font-black text-2xl text-ink-primary mb-4">
-                You Discovered a Creature!
-            </h3>
+            <!-- THEATER STAGE -->
+            <div class="relative z-10 py-6 min-h-[320px] flex flex-col items-center justify-center">
+                @if (_isOpeningAnimation)
+                {
+                    <!-- STATE B: Crate Shaking & Energy Opening Effect -->
+                    <div class="flex flex-col items-center justify-center text-center space-y-4 py-8 animate-in zoom-in-90 duration-300">
+                        <div class="relative">
+                            <div class="text-8xl sm:text-9xl select-none animate-crate-shake drop-shadow-[0_15px_30px_rgba(231,196,107,0.5)]">
+                                📦
+                            </div>
+                            <div class="absolute inset-0 rounded-full bg-gold-accent/30 blur-2xl animate-pulse"></div>
+                        </div>
 
-            <!-- Revealed Creature Card Presentation -->
-            <div class="w-full max-w-xs mb-6">
-                <CreatureCard Creature="@_revealedCreature" OwnershipCount="@(CollectionService.GetEntry(_revealedCreature.Id)?.Quantity ?? 1)" ShowAddToCart="false" />
+                        <div class="space-y-1">
+                            <span class="font-display font-bold text-xl text-ink-primary">
+                                Unsealing 5 Veilbound Specimens...
+                            </span>
+                            <p class="text-xs text-purple-muted font-medium">
+                                Aligning cosmic resonances across the planar drop matrix
+                            </p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- STATE C: Progressive 5-Card Reveal Row -->
+                    <div class="w-full">
+                        <!-- Climax Card Warning Banner if 5th Card is arriving -->
+                        @if (_currentRevealIndex == 4 && !_activeOpeningResult.Cards[4].IsRevealed)
+                        {
+                            <div class="mb-4 text-center py-1.5 px-4 rounded-xl bg-gradient-to-r from-amber-100 via-yellow-100 to-amber-100 border border-amber-300 text-xs font-extrabold text-amber-950 animate-pulse shadow-sm">
+                                ★ FINAL CARD CLIMAX REVEAL INCOMING ★
+                            </div>
+                        }
+
+                        <!-- Cards 5-Slot Responsive Grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 justify-center">
+                            @for (int i = 0; i < _activeOpeningResult.Cards.Count; i++)
+                            {
+                                int idx = i;
+                                var card = _activeOpeningResult.Cards[idx];
+                                bool isRevealed = card.IsRevealed;
+
+                                <div class="perspective-1000 w-full min-h-[260px] sm:min-h-[290px] flex">
+                                    <div class="relative w-full rounded-2xl transition-transform duration-700 transform-style-3d @(isRevealed ? "rotate-y-180" : "")">
+                                        <!-- CARD BACK (Mystical Sealed Face) -->
+                                        <div class="absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br from-plum-deep via-plum-secondary to-plum-deep border-2 border-gold-accent/40 p-4 flex flex-col items-center justify-between backface-hidden shadow-card">
+                                            <div class="flex items-center justify-between w-full text-[10px] text-gold-accent font-bold">
+                                                <span>CARD @(idx + 1)/5</span>
+                                                @if (card.IsFinalCard)
+                                                {
+                                                    <span class="text-amber-300">★ FINAL</span>
+                                                }
+                                            </div>
+
+                                            <div class="flex flex-col items-center justify-center my-auto text-center">
+                                                <div class="w-14 h-14 rounded-2xl bg-plum-surface border border-gold-accent/30 flex items-center justify-center text-gold-accent text-2xl shadow-inner mb-2">
+                                                    ◈
+                                                </div>
+                                                <span class="font-display font-black text-sm tracking-widest text-ivory">VEILBOUND</span>
+                                                <span class="text-[9px] text-purple-light/60 uppercase tracking-widest">SEALED ESSENCE</span>
+                                            </div>
+
+                                            @if (!_isComplete && idx == _revealedCardCount)
+                                            {
+                                                <button type="button"
+                                                        @onclick="() => RevealCardByIndex(idx)"
+                                                        class="w-full py-1.5 rounded-lg bg-gold-accent text-plum-deep text-[11px] font-bold hover:bg-gold-hover transition-colors shadow animate-pulse">
+                                                    Flip Card &rarr;
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <div class="text-[10px] text-purple-light/40 italic">
+                                                    Pending reveal
+                                                </div>
+                                            }
+                                        </div>
+
+                                        <!-- CARD FRONT (Revealed Creature Face) -->
+                                        <div class="absolute inset-0 w-full h-full rounded-2xl bg-card border-2 p-3 flex flex-col justify-between backface-hidden rotate-y-180 shadow-card @GetRarityGlowClass(card.Creature.Rarity) @RarityHelper.GetBorderAccent(card.Creature.Rarity)">
+                                            <!-- Top Bar -->
+                                            <div class="flex items-center justify-between gap-1 mb-1">
+                                                <RarityBadge Rarity="@card.Creature.Rarity" />
+                                                <span class="text-[10px] font-mono text-ink-muted">#@(idx + 1)</span>
+                                            </div>
+
+                                            <!-- Art Area -->
+                                            <div class="aspect-square w-full rounded-xl bg-gradient-to-br @card.Creature.ArtColorGradient flex items-center justify-center p-3 relative overflow-hidden mb-2 shadow-inner">
+                                                @if (card.Creature.Mutations.Any())
+                                                {
+                                                    <div class="absolute inset-0 prismatic-foil opacity-30 pointer-events-none"></div>
+                                                }
+                                                <span class="text-5xl select-none drop-shadow-md">
+                                                    @card.Creature.EmojiArt
+                                                </span>
+                                            </div>
+
+                                            <!-- Details -->
+                                            <div class="flex-1 flex flex-col justify-between">
+                                                <div>
+                                                    <h5 class="font-display font-bold text-sm text-ink-primary leading-tight truncate">
+                                                        @card.Creature.Name
+                                                    </h5>
+                                                    <p class="text-[10px] text-ink-muted truncate">
+                                                        @card.Creature.CreatureType
+                                                    </p>
+
+                                                    @if (card.Creature.Mutations.Any())
+                                                    {
+                                                        <div class="flex flex-wrap gap-1 mt-1">
+                                                            @foreach (var m in card.Creature.Mutations)
+                                                            {
+                                                                <MutationBadge Mutation="@m" />
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
+
+                                                <!-- Valuation Pill -->
+                                                <div class="pt-2 mt-2 border-t border-border-subtle flex items-center justify-between">
+                                                    <span class="text-[9px] uppercase font-bold text-ink-muted">Valuation</span>
+                                                    <span class="font-display font-bold text-xs text-amber-950">
+                                                        ₱@card.Valuation.ToString("N0")
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
             </div>
 
-            <p class="text-xs text-ink-muted mb-6">
-                <strong>@_revealedCreature.Name</strong> has been added to your Vault! You now own @(CollectionService.GetEntry(_revealedCreature.Id)?.Quantity ?? 1) copy of this card.
+            <!-- STATE D: Final Profit/Loss Summary Banner (Once all 5 cards revealed) -->
+            @if (_isComplete)
+            {
+                <div class="relative z-10 mt-4 p-5 rounded-2xl border-2 shadow-lg animate-in fade-in zoom-in-95 duration-300 @GetOutcomeBoxClass(_activeOpeningResult.Outcome)">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">
+                                @GetOutcomeIcon(_activeOpeningResult.Outcome)
+                            </span>
+                            <div>
+                                <span class="text-[11px] font-extrabold uppercase tracking-widest opacity-80">
+                                    Result Category
+                                </span>
+                                <h4 class="font-display font-black text-xl sm:text-2xl leading-tight">
+                                    @GetOutcomeHeadline(_activeOpeningResult.Outcome)
+                                </h4>
+                                <p class="text-xs opacity-90 mt-0.5">
+                                    @GetOutcomeSubtext(_activeOpeningResult.Outcome)
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Financial Figures -->
+                        <div class="flex items-center gap-6 bg-card/80 backdrop-blur-sm px-4 py-2.5 rounded-xl border border-border-subtle/50 text-xs text-ink-primary">
+                            <div>
+                                <span class="text-[10px] text-ink-muted block uppercase font-bold">Total Card Value</span>
+                                <span class="font-display font-black text-base text-ink-primary">₱@_activeOpeningResult.TotalCardValue.ToString("N0")</span>
+                            </div>
+                            <div class="w-px h-6 bg-border-subtle"></div>
+                            <div>
+                                <span class="text-[10px] text-ink-muted block uppercase font-bold">Net Difference</span>
+                                <span class="font-bold text-base @(_activeOpeningResult.NetDifference >= 0 ? "text-emerald-700" : "text-rose-700")">
+                                    @(_activeOpeningResult.NetDifference >= 0 ? "+" : "")₱@_activeOpeningResult.NetDifference.ToString("N0")
+                                </span>
+                            </div>
+                            <div class="w-px h-6 bg-border-subtle"></div>
+                            <div>
+                                <span class="text-[10px] text-ink-muted block uppercase font-bold">Return</span>
+                                <span class="font-bold text-base @(_activeOpeningResult.NetPercentage >= 0 ? "text-emerald-700" : "text-rose-700")">
+                                    @(_activeOpeningResult.NetPercentage >= 0 ? "+" : "")@_activeOpeningResult.NetPercentage%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-black/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                        <span class="text-[11px] opacity-80">
+                            ✓ All 5 revealed cards have been deposited directly into your <strong>Vault</strong>.
+                        </span>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <a href="/vault" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-ivory text-ink-primary hover:bg-border-subtle font-bold text-xs transition-colors border text-center">
+                                Inspect Vault &rarr;
+                            </a>
+                            <button type="button"
+                                    @onclick="() => StartCrateOpening(PackService.GetPackById(_activeOpeningResult.PackId)!)"
+                                    class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-xs transition-colors shadow text-center">
+                                Open Another Crate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Bottom Theater Footer Controls -->
+            <div class="relative z-10 pt-4 mt-4 border-t border-border-subtle flex items-center justify-between gap-3">
+                <button type="button"
+                        @onclick="CloseOpeningTheater"
+                        class="px-4 py-2 rounded-xl text-xs font-semibold text-ink-muted hover:text-ink-primary hover:bg-ivory transition-colors">
+                    Close Theater
+                </button>
+
+                @if (!_isComplete && !_isOpeningAnimation)
+                {
+                    <div class="flex items-center gap-2">
+                        <button type="button"
+                                @onclick="RevealNextCard"
+                                class="px-4 py-2 rounded-xl bg-purple-light text-plum-secondary hover:bg-purple-soft font-bold text-xs transition-colors border border-border-subtle">
+                            Reveal Next Card &rarr;
+                        </button>
+                        <button type="button"
+                                @onclick="SkipToFinalReveal"
+                                class="px-4 py-2 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-xs transition-colors shadow">
+                            Skip Reveal ⏭
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ======================================================== -->
+<!-- TRANSPARENT DROP ODDS MODAL                              -->
+<!-- ======================================================== -->
+@if (_selectedOddsPack != null)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-plum-deep/70 backdrop-blur-sm animate-in fade-in duration-200">
+        <div class="bg-card rounded-2xl border border-border-subtle p-6 sm:p-8 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-200">
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-border-subtle">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">📊</span>
+                    <div>
+                        <h4 class="font-display font-bold text-lg text-ink-primary">
+                            @_selectedOddsPack.Name Odds
+                        </h4>
+                        <p class="text-xs text-ink-muted">Configured Drop Table Probabilities</p>
+                    </div>
+                </div>
+                <button type="button" @onclick="CloseOddsModal" class="text-ink-muted hover:text-ink-primary p-1">
+                    ✕
+                </button>
+            </div>
+
+            <p class="text-xs text-ink-muted mb-4 leading-relaxed">
+                Probabilities represent normalized weights applied independently to each of the <strong>@_selectedOddsPack.CardCount cards</strong> in the crate.
             </p>
 
-            <div class="flex items-center gap-3 w-full">
-                <a href="/vault" class="flex-1 py-2.5 rounded-xl bg-ivory border border-border-subtle text-ink-primary hover:bg-border-subtle font-semibold text-xs transition-colors">
-                    View in My Vault
-                </a>
-                <button type="button"
-                        @onclick="CloseRevealModal"
-                        class="flex-1 py-2.5 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-xs transition-colors shadow">
-                    Keep Opening
+            <!-- Probability Table -->
+            <div class="divide-y divide-border-subtle border rounded-xl overflow-hidden mb-6 bg-ivory">
+                <div class="px-4 py-2 bg-purple-light/50 font-bold text-[11px] text-plum-secondary flex justify-between">
+                    <span>Rarity Tier</span>
+                    <span>Selection Weight / Odds</span>
+                </div>
+                @foreach (var kvp in _selectedOddsPack.DropTable.Weights)
+                {
+                    double totalWeight = _selectedOddsPack.DropTable.Weights.Values.Sum();
+                    double pct = totalWeight > 0 ? (kvp.Value / totalWeight) * 100.0 : 0.0;
+
+                    <div class="px-4 py-2.5 flex items-center justify-between text-xs bg-card">
+                        <div class="flex items-center gap-2">
+                            <RarityBadge Rarity="@kvp.Key" />
+                        </div>
+                        <span class="font-mono font-bold text-ink-primary">@pct.ToString("F1")%</span>
+                    </div>
+                }
+            </div>
+
+            <div class="p-3 rounded-xl bg-purple-light/70 text-[11px] text-plum-secondary leading-relaxed mb-6">
+                ✦ Bonus Mutation Probability: <strong>@((_selectedOddsPack.DropTable.MutationChance * 100.0).ToString("F0"))%</strong> chance for extra holographic trait on unboxed cards.
+            </div>
+
+            <div class="flex justify-end">
+                <button type="button" @onclick="CloseOddsModal" class="px-5 py-2.5 rounded-xl bg-plum-deep text-gold-accent hover:bg-plum-secondary font-bold text-xs transition-colors shadow">
+                    Understood
                 </button>
             </div>
         </div>
@@ -180,9 +619,21 @@
 }
 
 @code {
-    private MysteryPack? _selectedPack;
-    private bool _showConfirmation = false;
-    private Creature? _revealedCreature;
+    private MysteryPack? _selectedOddsPack;
+    private CrateOpeningResult? _activeOpeningResult;
+    private bool _isOpeningAnimation = false;
+    private bool _isComplete = false;
+    private int _currentRevealIndex = 0;
+    private int _revealedCardCount => _activeOpeningResult?.Cards.Count(c => c.IsRevealed) ?? 0;
+
+    private decimal CurrentRunningTotal => _activeOpeningResult?.Cards.Where(c => c.IsRevealed).Sum(c => c.Valuation) ?? 0m;
+    private decimal CurrentProvisionalDifference => CurrentRunningTotal - (_activeOpeningResult?.CrateCost ?? 0m);
+
+    protected override void OnInitialized()
+    {
+        PackService.OnChange += StateHasChanged;
+        CollectionService.OnChange += StateHasChanged;
+    }
 
     private void AddPackToCart(MysteryPack pack)
     {
@@ -190,29 +641,188 @@
         NotificationService.ShowToast($"Added {pack.Name} to cart!");
     }
 
-    private void ConfirmOpenPack(MysteryPack pack)
+    private void OpenOddsModal(MysteryPack pack)
     {
-        _selectedPack = pack;
-        _showConfirmation = true;
+        _selectedOddsPack = pack;
     }
 
-    private void OnConfirmClosed(bool isOpen)
+    private void CloseOddsModal()
     {
-        _showConfirmation = isOpen;
+        _selectedOddsPack = null;
     }
 
-    private void ExecutePackOpening()
+    private async Task StartCrateOpening(MysteryPack pack)
     {
-        if (_selectedPack != null)
+        // 1. Generate full 5-card result deterministically once
+        _activeOpeningResult = PackService.GenerateCrateOpening(pack.Id);
+        _isOpeningAnimation = true;
+        _isComplete = false;
+        _currentRevealIndex = 0;
+
+        // 2. Play crate opening shake animation for 700ms
+        StateHasChanged();
+        await Task.Delay(700);
+
+        _isOpeningAnimation = false;
+        StateHasChanged();
+
+        // 3. Begin progressive reveal automatically
+        await RunProgressiveReveal();
+    }
+
+    private async Task RunProgressiveReveal()
+    {
+        if (_activeOpeningResult == null) return;
+
+        for (int i = 0; i < _activeOpeningResult.Cards.Count; i++)
         {
-            var result = PackService.OpenPack(_selectedPack.Id);
-            _revealedCreature = result;
-            NotificationService.ShowToast($"Unboxed {result.Name} ({result.Rarity})!", "success");
+            if (_isComplete || _activeOpeningResult.Cards[i].IsRevealed) continue;
+
+            _currentRevealIndex = i;
+
+            // Extra suspense pause before the 5th final card
+            if (i == _activeOpeningResult.Cards.Count - 1)
+            {
+                StateHasChanged();
+                await Task.Delay(900);
+            }
+
+            _activeOpeningResult.Cards[i].IsRevealed = true;
+            StateHasChanged();
+
+            await Task.Delay(1100);
+        }
+
+        FinalizeOpening();
+    }
+
+    private void RevealCardByIndex(int index)
+    {
+        if (_activeOpeningResult != null && index >= 0 && index < _activeOpeningResult.Cards.Count)
+        {
+            _activeOpeningResult.Cards[index].IsRevealed = true;
+            if (_activeOpeningResult.Cards.All(c => c.IsRevealed))
+            {
+                FinalizeOpening();
+            }
         }
     }
 
-    private void CloseRevealModal()
+    private void RevealNextCard()
     {
-        _revealedCreature = null;
+        if (_activeOpeningResult == null) return;
+        var nextHidden = _activeOpeningResult.Cards.FirstOrDefault(c => !c.IsRevealed);
+        if (nextHidden != null)
+        {
+            nextHidden.IsRevealed = true;
+            if (_activeOpeningResult.Cards.All(c => c.IsRevealed))
+            {
+                FinalizeOpening();
+            }
+        }
+    }
+
+    private void SkipToFinalReveal()
+    {
+        if (_activeOpeningResult == null) return;
+
+        // Reveal all cards instantly without changing any randomized outcomes
+        foreach (var card in _activeOpeningResult.Cards)
+        {
+            card.IsRevealed = true;
+        }
+
+        FinalizeOpening();
+    }
+
+    private void FinalizeOpening()
+    {
+        if (_activeOpeningResult != null && !_isComplete)
+        {
+            _isComplete = true;
+
+            // Idempotently commit cards to user vault and record history
+            PackService.CommitOpeningToVault(_activeOpeningResult);
+
+            string toastType = _activeOpeningResult.Outcome switch
+            {
+                OpeningOutcome.Jackpot => "success",
+                OpeningOutcome.Profit => "success",
+                OpeningOutcome.BreakEven => "info",
+                _ => "warning"
+            };
+
+            NotificationService.ShowToast($"Crate Opened: {_activeOpeningResult.Outcome.ToString()} (₱{_activeOpeningResult.TotalCardValue:N0})!", toastType);
+        }
+    }
+
+    private void CloseOpeningTheater()
+    {
+        _activeOpeningResult = null;
+        _isComplete = false;
+        _isOpeningAnimation = false;
+    }
+
+    private string GetRarityGlowClass(RarityTier tier) => tier switch
+    {
+        RarityTier.Common => "glow-common",
+        RarityTier.Uncommon => "glow-uncommon",
+        RarityTier.Rare => "glow-rare",
+        RarityTier.Epic => "glow-epic",
+        RarityTier.Mythic => "glow-mythic",
+        RarityTier.Legendary => "glow-legendary",
+        RarityTier.Celestial => "glow-celestial",
+        _ => ""
+    };
+
+    private string GetOutcomeBadgeClass(OpeningOutcome outcome) => outcome switch
+    {
+        OpeningOutcome.Jackpot => "bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-plum-deep shadow font-extrabold",
+        OpeningOutcome.Profit => "bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold",
+        OpeningOutcome.BreakEven => "bg-amber-50 text-amber-900 border border-amber-300 font-bold",
+        OpeningOutcome.Loss => "bg-rose-100 text-rose-800 border border-rose-300 font-bold",
+        _ => "bg-stone-100 text-stone-800"
+    };
+
+    private string GetOutcomeBoxClass(OpeningOutcome outcome) => outcome switch
+    {
+        OpeningOutcome.Jackpot => "bg-gradient-to-r from-amber-500/20 via-yellow-400/20 to-purple-500/20 border-gold-accent text-plum-deep",
+        OpeningOutcome.Profit => "bg-emerald-50 border-emerald-300 text-emerald-950",
+        OpeningOutcome.BreakEven => "bg-amber-50 border-amber-300 text-amber-950",
+        OpeningOutcome.Loss => "bg-rose-50 border-rose-300 text-rose-950",
+        _ => "bg-card border-border-subtle text-ink-primary"
+    };
+
+    private string GetOutcomeIcon(OpeningOutcome outcome) => outcome switch
+    {
+        OpeningOutcome.Jackpot => "👑",
+        OpeningOutcome.Profit => "📈",
+        OpeningOutcome.BreakEven => "⚖️",
+        OpeningOutcome.Loss => "📉",
+        _ => "📦"
+    };
+
+    private string GetOutcomeHeadline(OpeningOutcome outcome) => outcome switch
+    {
+        OpeningOutcome.Jackpot => "LEGENDARY JACKPOT!",
+        OpeningOutcome.Profit => "YOU CAME OUT AHEAD",
+        OpeningOutcome.BreakEven => "YOU BROKE EVEN",
+        OpeningOutcome.Loss => "THE CRATE DIDN'T PAY OFF",
+        _ => "OPENING CONCLUDED"
+    };
+
+    private string GetOutcomeSubtext(OpeningOutcome outcome) => outcome switch
+    {
+        OpeningOutcome.Jackpot => "Astounding pull! You uncovered a celestial rarity or immense portfolio valuation.",
+        OpeningOutcome.Profit => "Strong returns! The cumulative illustrative value of your specimens exceeds the crate cost.",
+        OpeningOutcome.BreakEven => "Balanced outcome. Your cards match the purchase appraisal of this crate.",
+        OpeningOutcome.Loss => "The planar roll was challenging. Total specimen valuation fell below purchase cost.",
+        _ => "Specimens have been registered."
+    };
+
+    public void Dispose()
+    {
+        PackService.OnChange -= StateHasChanged;
+        CollectionService.OnChange -= StateHasChanged;
     }
 }

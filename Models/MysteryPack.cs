@@ -14,5 +14,14 @@ public class MysteryPack
     public string OddsDescription { get; set; } = string.Empty;
     public RarityTier MinGuaranteedRarity { get; set; } = RarityTier.Common;
     public List<string> CreaturePoolIds { get; set; } = new();
-}
 
+    /// <summary>
+    /// Every crate contains at least five cards per opening.
+    /// </summary>
+    public int CardCount { get; set; } = 5;
+
+    /// <summary>
+    /// Explicit configurable drop table for weighted selection.
+    /// </summary>
+    public CrateDropTable DropTable { get; set; } = new();
+}
