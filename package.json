@@ -1,0 +1,15 @@
+{
+  "name": "mystery-crate",
+  "version": "1.0.0",
+  "description": "Mystery Crate - Veilbound: Origins Collectible Card Universe",
+  "scripts": {
+    "build:css": "tailwindcss -i ./Styles/input.css -o ./wwwroot/app.css --minify",
+    "watch:css": "tailwindcss -i ./Styles/input.css -o ./wwwroot/app.css --watch"
+  },
+  "keywords": ["blazor", "tailwind", "collectible-cards"],
+  "author": "Antigravity",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
