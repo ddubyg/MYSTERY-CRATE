@@ -8,14 +8,16 @@ public class MysteryPackService
     private readonly List<MysteryPack> _packs;
     private readonly CreatureService _creatureService;
     private readonly CollectionService _collectionService;
+    private readonly SupabaseService? _supabaseService;
     private readonly List<OpeningHistoryEntry> _history = new();
 
     public event Action? OnChange;
 
-    public MysteryPackService(CreatureService creatureService, CollectionService collectionService)
+    public MysteryPackService(CreatureService creatureService, CollectionService collectionService, SupabaseService? supabaseService = null)
     {
         _creatureService = creatureService;
         _collectionService = collectionService;
+        _supabaseService = supabaseService;
         _packs = SampleData.GetDefaultMysteryPacks();
     }
 
@@ -160,6 +162,11 @@ public class MysteryPackService
 
         _history.Insert(0, entry);
         NotifyStateChanged();
+
+        if (_supabaseService != null && _supabaseService.IsConfigured)
+        {
+            _ = Task.Run(async () => await _supabaseService.RecordCrateOpeningAsync(result));
+        }
     }
 
     /// <summary>

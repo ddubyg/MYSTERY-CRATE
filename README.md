@@ -224,8 +224,23 @@ The valuation formula is:
 ## 8. State Management & Lifecycle
 
 - Services (`CartService`, `CollectionService`, `MysteryPackService`, `MarketplaceService`, `TradeService`, and `NotificationService`) are registered as **Scoped** in `Program.cs`.
-- Each browser circuit or user session has its own isolated service state for the duration of that circuit session. This in-memory state is not equivalent to persistent database storage.
+- Each browser circuit or user session has its own isolated service state for the duration of that circuit session.
 - Pack openings, marketplace purchases, barter trades, and checkout completions update the user's `CollectionService` vault in real time through C# event actions such as `OnChange?.Invoke()`, without requiring full-page reloads.
+
+### 8.1 Supabase Cloud Database Integration
+
+The application is connected to a live cloud **Supabase PostgreSQL** instance:
+- **Project Ref:** `acpuckarqybxxlqveoeo`
+- **Tables Provisioned:**
+  - `creatures` — Full 15-creature catalog with base prices, rarity tiers, mutations, and descriptions.
+  - `mystery_packs` — Tiered crate definitions with drop tables, pricing, and odds.
+  - `vault_cards` — User collection state with card counts and acquisition timestamps.
+  - `marketplace_listings` — Active peer-to-peer listings on The Exchange.
+  - `crate_opening_history` — Complete logs of opened crates, revealed cards, net difference, and outcome category.
+  - `orders` — Full simulated customer orders, line items, and addresses.
+  - `trade_history` — Barter exchange logs.
+- **Client Implementation:** `Services/SupabaseService.cs` provides resilient REST API communication with Bearer authentication and transparent in-memory fallback.
+- **Schema & Migration:** Complete DDL and seed scripts are preserved in [`supabase-schema.sql`](file:///c:/Users/L23X17W27/Desktop/midterm/supabase-schema.sql).
 
 ---
 

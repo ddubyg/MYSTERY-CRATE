@@ -7,6 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Register HTTP client for Supabase Service
+builder.Services.AddHttpClient<SupabaseService>();
+
 // Register application domain services as Scoped per circuit session
 builder.Services.AddScoped<CreatureService>();
 builder.Services.AddScoped<CollectionService>();

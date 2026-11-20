@@ -6,6 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Npgsql" Version="10.0.3" />
+  </ItemGroup>
+
   <Target Name="BuildTailwind" BeforeTargets="Build" Condition="Exists('node_modules')">
     <Exec Command="npm run build:css" />
   </Target>
